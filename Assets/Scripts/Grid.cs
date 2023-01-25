@@ -16,7 +16,7 @@ public class Grid : MonoBehaviour
 
     [SerializeField]
     private Piece GeneralPiece;
-
+    private Piece selectedPiece;
     [SerializeField]
     GameObject moveIndicator;
     private string playerToplay = "white";
@@ -120,6 +120,7 @@ public class Grid : MonoBehaviour
 
     public void GenerateIndicators(Piece piece)
     {
+        selectedPiece = piece;
         int x = piece.GetX(),
             y = piece.GetY();
         switch (piece.name)
@@ -207,25 +208,29 @@ public class Grid : MonoBehaviour
         bool isEmpty = getPosition(x, y) == null;
         if (isOnBoard && isEmpty && piece.GetPlayer() == "white" && piece.GetY() == 1)
         {
-                if(getPosition(x,y) == null){
+            if (getPosition(x, y) == null)
+            {
                 moves.Add(new Vector3(x, y, -1));
             }
-            if(getPosition(x,y + 1) == null){
+            if (getPosition(x, y + 1) == null)
+            {
                 moves.Add(new Vector3(x, y + 1, -1));
             }
-        
+
             // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
             //Instantiate(moveIndicator, new Vector3(x, y + 1, -1), Quaternion.identity);
         }
         else if (isOnBoard && isEmpty && piece.GetPlayer() == "black" && piece.GetY() == 6)
         {
-            if(getPosition(x,y) == null){
+            if (getPosition(x, y) == null)
+            {
                 moves.Add(new Vector3(x, y, -1));
             }
-            if(getPosition(x,y - 1) == null){
+            if (getPosition(x, y - 1) == null)
+            {
                 moves.Add(new Vector3(x, y - 1, -1));
             }
-        
+
             // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
             // Instantiate(moveIndicator, new Vector3(x, y - 1, -1), Quaternion.identity);
         }
@@ -315,10 +320,14 @@ public class Grid : MonoBehaviour
         {
             for (int j = 0; j < 8; j++)
             {
-                if (positions[i, j].name == kingToFind)
+                if (positions[i, j] != null)
                 {
-                    return new Vector3(i, j, -1);
+                    if (positions[i, j].name == kingToFind)
+                    {
+                        return new Vector3(i, j, -1);
+                    }
                 }
+
             }
         }
         return new Vector3(-1, -1, -1);
@@ -327,6 +336,7 @@ public class Grid : MonoBehaviour
     public bool isInCheck(string player)
     {
         Vector3 kingPos = findKing(player);
+        //Debug.Log(kingPos);
         for (int i = 0; i < moves.Count; i++)
         {
             if (moves[i] == kingPos)
@@ -337,22 +347,13 @@ public class Grid : MonoBehaviour
         return false;
     }
 
-    public void legalMoves()
+    public void legalMoves(Piece piece)
     {
-       
+        List<Vector3> legalMoves = new List<Vector3>(); ;
+        List<Vector3> myMoves = new List<Vector3>(moves);
+        Piece pieceToTake  = null;
+        clearMoves();
         for (int i = 0; i < 8; i++)
-        {
-            for (int k = 0; k < 8; k++)
-            {
-                Piece a = getPosition(i, k);
-                if (a != null && a.GetPlayer() == getPlayerToPlay())
-                {
-                    GenerateIndicators(a);
-                }
-            }
-        }
-         List<Vector3> myMoves = new List<Vector3>(moves);
-         for (int i = 0; i < 8; i++)
         {
             for (int k = 0; k < 8; k++)
             {
@@ -363,11 +364,54 @@ public class Grid : MonoBehaviour
                 }
             }
         }
-        
-        for (int i = 0; i < myMoves.Count; i++)
-        {
-           
+        if(!isInCheck(getPlayerToPlay())){
+            moves = myMoves;
+            return;
         }
+        Vector2 originalPos = new Vector2();
+
+        originalPos.x = piece.GetX();
+        originalPos.y = piece.GetY();
+        for (int j = 0; j < myMoves.Count; j++)
+        {
+            if(positions[(int)myMoves[j].x, (int)myMoves[j].y] != null) {
+               pieceToTake = getPosition((int)myMoves[j].x, (int)myMoves[j].y);
+            } 
+            positions[(int)myMoves[j].x, (int)myMoves[j].y] = piece;
+             positions[(int)originalPos.x, (int)originalPos.y] = null;
+            //SetPosition(piece, (int)myMoves[j].x, (int)myMoves[j].y);
+            clearMoves();
+            for (int i = 0; i < 8; i++)
+            {
+                for (int k = 0; k < 8; k++)
+                {
+                    Piece a = getPosition(i, k);
+                    if (a != null && a.GetPlayer() != getPlayerToPlay())
+                    {
+                        GenerateIndicators(a);
+                    }
+                }
+            }
+            if (!isInCheck(getPlayerToPlay()))
+            {
+                legalMoves.Add(myMoves[j]);
+            }
+            if(pieceToTake != null) {
+                Debug.Log(pieceToTake);
+              // SetPosition(pieceToTake, (int)myMoves[j].x, (int)myMoves[j].y);
+               positions[(int)myMoves[j].x, (int)myMoves[j].y] = pieceToTake;
+                Debug.Log(getPosition((int)myMoves[j].x, (int)myMoves[j].y));
+                pieceToTake = null;
+            }
+            else{
+                positions[(int)myMoves[j].x, (int)myMoves[j].y] = null;
+            }
+              positions[(int)originalPos.x, (int)originalPos.y] = piece;
+           // SetPosition(piece, (int)originalPos.x, (int)originalPos.y);
+           // Debug.Log(getPosition((int)myMoves[j].x, (int)myMoves[j].y));
+        }
+        moves = legalMoves;
+      
     }
 
     public Piece getPosition(int x, int y)

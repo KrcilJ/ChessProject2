@@ -112,6 +112,7 @@ public class Piece : MonoBehaviour
         rectTransform.GetComponent<Collider2D>().enabled = false;
         if(this != null){
                 controller.GetComponent<Grid>().GenerateIndicators(this);
+                controller.GetComponent<Grid>().legalMoves(this);
                 controller.GetComponent<Grid>().makeIndicators();
         }
         for (int i = 0; i < 8; i++)
@@ -142,7 +143,7 @@ public class Piece : MonoBehaviour
          
         RaycastHit2D hitInfo;
         hitInfo = Physics2D.Raycast(MouseWorldPosition(), Vector2.zero);
-         GameObject[] indicators = GameObject.FindGameObjectsWithTag("MoveIndicator");
+        GameObject[] indicators = GameObject.FindGameObjectsWithTag("MoveIndicator");
         bool legalMove = false;
         bool takePiece = false;
         if( hitInfo)
