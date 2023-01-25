@@ -73,13 +73,6 @@ public class Grid : MonoBehaviour
             positions[playerWhite[i].GetX(), playerWhite[i].GetY()] = playerWhite[i];
             positions[playerBlack[i].GetX(), playerBlack[i].GetY()] = playerBlack[i];
         }
-        for (int j = 0; j < 8; j++)
-        {
-            for (int k = 0; k < 8; k++)
-            {
-                Debug.Log(positions[j, k]);
-            }
-        }
     }
 
     void GenerateGrid()
@@ -101,6 +94,9 @@ public class Grid : MonoBehaviour
 
     public void SetPosition(Piece piece, int x, int y)
     {
+        Vector3 kingPos = findKing(playerToplay);
+        Tile kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
+        kingTile.resetColor(); //if the king was in check, reset the color of the king square to the original tile color
         positions[x, y] = piece;
         positions[piece.GetX(), piece.GetY()] = null;
         piece.SetX(x);
@@ -349,69 +345,83 @@ public class Grid : MonoBehaviour
 
     public void legalMoves(Piece piece)
     {
+        string playerToPlay = getPlayerToPlay();
         List<Vector3> legalMoves = new List<Vector3>(); ;
-        List<Vector3> myMoves = new List<Vector3>(moves);
-        Piece pieceToTake  = null;
+
+        List<Vector3> myMoves = new List<Vector3>(moves); //save the current pieces possible moves
+        Piece pieceToTake = null;
         clearMoves();
+        //Generate all possible moves for the enemy pieces
         for (int i = 0; i < 8; i++)
         {
             for (int k = 0; k < 8; k++)
             {
                 Piece a = getPosition(i, k);
-                if (a != null && a.GetPlayer() != getPlayerToPlay())
+                if (a != null && a.GetPlayer() != playerToPlay)
                 {
                     GenerateIndicators(a);
                 }
             }
         }
-        if(!isInCheck(getPlayerToPlay())){
-            moves = myMoves;
-            return;
+        Tile kingTile = null;
+        //Set the king tile to red if the king is in check
+        if (isInCheck(playerToPlay))
+        {
+            Vector3 kingPos = findKing(playerToplay);
+            kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
+            kingTile.tileRed();
         }
+        //Save the original position of the piece
         Vector2 originalPos = new Vector2();
-
         originalPos.x = piece.GetX();
         originalPos.y = piece.GetY();
+
         for (int j = 0; j < myMoves.Count; j++)
         {
-            if(positions[(int)myMoves[j].x, (int)myMoves[j].y] != null) {
-               pieceToTake = getPosition((int)myMoves[j].x, (int)myMoves[j].y);
-            } 
+            //if the move of the piece would take an enemy piece save that piece
+            if (positions[(int)myMoves[j].x, (int)myMoves[j].y] != null)
+            {
+                pieceToTake = getPosition((int)myMoves[j].x, (int)myMoves[j].y);
+            }
+            //Make the move on the board (programatically the board does not change)
             positions[(int)myMoves[j].x, (int)myMoves[j].y] = piece;
-             positions[(int)originalPos.x, (int)originalPos.y] = null;
-            //SetPosition(piece, (int)myMoves[j].x, (int)myMoves[j].y);
+            positions[(int)originalPos.x, (int)originalPos.y] = null;
+
             clearMoves();
             for (int i = 0; i < 8; i++)
             {
                 for (int k = 0; k < 8; k++)
                 {
                     Piece a = getPosition(i, k);
-                    if (a != null && a.GetPlayer() != getPlayerToPlay())
+                    if (a != null && a.GetPlayer() != playerToPlay)
                     {
                         GenerateIndicators(a);
                     }
                 }
             }
-            if (!isInCheck(getPlayerToPlay()))
+            //After the move has been made check if the king is still in check
+            if (!isInCheck(playerToPlay))
             {
-                legalMoves.Add(myMoves[j]);
+                legalMoves.Add(myMoves[j]); // if the king is not in check after the move make the move legal
             }
-            if(pieceToTake != null) {
-                Debug.Log(pieceToTake);
-              // SetPosition(pieceToTake, (int)myMoves[j].x, (int)myMoves[j].y);
-               positions[(int)myMoves[j].x, (int)myMoves[j].y] = pieceToTake;
-                Debug.Log(getPosition((int)myMoves[j].x, (int)myMoves[j].y));
+            //If a piece has been overwritten by the move set the piece back
+            if (pieceToTake != null)
+            {
+                // SetPosition(pieceToTake, (int)myMoves[j].x, (int)myMoves[j].y);
+                positions[(int)myMoves[j].x, (int)myMoves[j].y] = pieceToTake;
                 pieceToTake = null;
             }
-            else{
+            //if the move was on an empty square set the squere to null
+            else
+            {
                 positions[(int)myMoves[j].x, (int)myMoves[j].y] = null;
             }
-              positions[(int)originalPos.x, (int)originalPos.y] = piece;
-           // SetPosition(piece, (int)originalPos.x, (int)originalPos.y);
-           // Debug.Log(getPosition((int)myMoves[j].x, (int)myMoves[j].y));
+            //Set the piece to its original position
+            positions[(int)originalPos.x, (int)originalPos.y] = piece;
+
         }
+        //Set the possible moves to the legal moves
         moves = legalMoves;
-      
     }
 
     public Piece getPosition(int x, int y)

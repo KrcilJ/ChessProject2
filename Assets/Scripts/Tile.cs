@@ -3,17 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
+
+
 public class Tile : MonoBehaviour
 {
-   [SerializeField] private Color dark, light;
+    [SerializeField] private Color dark, light, red;
     [SerializeField] SpriteRenderer renderer;
-
-    public void isLight(bool isLight){
+    private Color originalColor;
+    public void isLight(bool isLight)
+    {
         renderer.color = isLight ? light : dark;
     }
+    public void tileRed()
+    {
+        if (renderer.color != red)
+        {
+            originalColor = renderer.color;
+        }
+        renderer.color = red;
+    }
+    public void resetColor()
+    {
+        if (renderer.color == red)
+        {
+            renderer.color = originalColor;
+        }
 
-   
-       
-   
-      
+    }
 }
