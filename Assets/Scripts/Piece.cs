@@ -11,6 +11,7 @@ public class Piece : MonoBehaviour
     public GameObject controller;
     private int xCord = -1;
     private int yCord = -1;
+    private bool hasMoved = false;
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
     private string player = "white";
@@ -115,17 +116,17 @@ public class Piece : MonoBehaviour
                 controller.GetComponent<Grid>().legalMoves(this);
                 controller.GetComponent<Grid>().makeIndicators();
         }
-        for (int i = 0; i < 8; i++)
-        {
-            for (int k = 0; k < 8; k++)
-        {
-           Piece a = controller.GetComponent<Grid>().getPosition(i,k);
-           if (a != null && a.GetPlayer() == controller.GetComponent<Grid>().getPlayerToPlay())
-           {
-            controller.GetComponent<Grid>().GenerateIndicators(a);
-           }
-        } 
-        }
+        // for (int i = 0; i < 8; i++)
+        // {
+        //     for (int k = 0; k < 8; k++)
+        // {
+        //    Piece a = controller.GetComponent<Grid>().getPosition(i,k);
+        //    if (a != null && a.GetPlayer() == controller.GetComponent<Grid>().getPlayerToPlay())
+        //    {
+        //     controller.GetComponent<Grid>().GenerateIndicators(a);
+        //    }
+        // } 
+        // }
         //controller.GetComponent<Grid>().makeIndicators();      
         
     }
@@ -171,7 +172,20 @@ public class Piece : MonoBehaviour
             
             if(legalMove){
                 rectTransform.position = hitInfo.transform.position;
+                Debug.Log(controller.GetComponent<Grid>().getCastleShort());
+                if(controller.GetComponent<Grid>().getCastleLong() && (int)rectTransform.position.x == this.GetX() - 2){
+                    Piece rook = controller.GetComponent<Grid>().getPosition(this.GetX() - 4, this.GetY()).GetComponent<Piece>();
+                    rook.rectTransform.position = new Vector3(rectTransform.position.x + 1,rectTransform.position.y, -1 );
+                    controller.GetComponent<Grid>().SetPosition(rook, (int)rectTransform.position.x + 1, (int)rectTransform.position.y);
+                }  
+                if(controller.GetComponent<Grid>().getCastleShort() && (int)rectTransform.position.x == this.GetX() + 2){
+                    Piece rook = controller.GetComponent<Grid>().getPosition(this.GetX() + 3, this.GetY()).GetComponent<Piece>();
+                    rook.rectTransform.position = new Vector3(rectTransform.position.x - 1,rectTransform.position.y, -1 );
+                    controller.GetComponent<Grid>().SetPosition(rook, (int)rectTransform.position.x - 1, (int)rectTransform.position.y);
+                }
                 controller.GetComponent<Grid>().SetPosition(this,(int)rectTransform.position.x, (int)rectTransform.position.y );
+                
+                setHasMoved(true);
                 controller.GetComponent<Grid>().clearMoves();
                 controller.GetComponent<Grid>().DestroyIndicators();
                 if(player == "white"){                  
@@ -187,6 +201,7 @@ public class Piece : MonoBehaviour
                 rectTransform.position = hitInfo.transform.position;
                 Destroy(hitInfo.transform.gameObject);
                 controller.GetComponent<Grid>().SetPosition(this,(int)rectTransform.position.x, (int)rectTransform.position.y );
+                setHasMoved(true);
                 controller.GetComponent<Grid>().clearMoves();
                 controller.GetComponent<Grid>().DestroyIndicators();
                if(player == "white"){                  
@@ -208,5 +223,12 @@ public class Piece : MonoBehaviour
         var mouseScreenPos = Input.mousePosition;
         mouseScreenPos.z = Camera.main.WorldToScreenPoint(transform.position).z;
         return Camera.main.ScreenToWorldPoint(mouseScreenPos);
+    }
+
+    public void setHasMoved(bool moved){
+        hasMoved = moved;
+    }
+    public bool getHasMoved(){
+        return hasMoved;
     }
 }

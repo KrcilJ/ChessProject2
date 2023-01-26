@@ -26,6 +26,8 @@ public class Grid : MonoBehaviour
     List<Vector3> moves = new List<Vector3>();
     List<Vector3> leagalMoves = new List<Vector3>();
 
+    private bool castleLong = false;
+    private bool castleShort = false;
     void Start()
     {
         GenerateGrid();
@@ -89,7 +91,7 @@ public class Grid : MonoBehaviour
             }
         }
 
-        cam.transform.position = new Vector3(width / 2f - 0.5f, height / 2f - 0.5f, -10);
+        cam.transform.position = new Vector3(width / 2f - 0.5f, height / 2f - 0.5f, -10); //Move the camera to the middle of the screen
     }
 
     public void SetPosition(Piece piece, int x, int y)
@@ -106,11 +108,11 @@ public class Grid : MonoBehaviour
     private Piece CreatePiece(string name, int x, int y)
     {
         Piece obj = Instantiate(GeneralPiece, new Vector3(x, y), Quaternion.identity);
-        Piece piece = obj.GetComponent<Piece>(); //We have access to the Piece, we need the script
-        piece.name = name; //This is a built in variable that Unity has, so we did not have to declare it before
+        Piece piece = obj.GetComponent<Piece>();
+        piece.name = name; 
         piece.SetX(x);
         piece.SetY(y);
-        piece.SetPiece(); //It has everything set up so it can now Activate()
+        piece.SetPiece();
         return obj;
     }
 
@@ -125,7 +127,7 @@ public class Grid : MonoBehaviour
                 createPawnIndicator(x, 1, piece);
                 break;
             case "bPawn":
-                createPawnIndicator(piece.GetX(), -1, piece);
+                createPawnIndicator(x, -1, piece);
                 break;
             case "wRook":
             case "bRook":
@@ -154,7 +156,6 @@ public class Grid : MonoBehaviour
                 break;
             case "wKnight":
             case "bKnight":
-
                 createIndicator(x + 1, y + 2, piece);
                 createIndicator(x - 1, y + 2, piece);
                 createIndicator(x + 2, y + 1, piece);
@@ -166,6 +167,11 @@ public class Grid : MonoBehaviour
                 break;
             case "wKing":
             case "bKing":
+
+                // Debug.Log("after methods");
+                // for(int i = 0; i < moves.Count; i++) {
+                //     Debug.Log(moves[i]);
+                // }
                 createIndicator(x + 1, y, piece);
                 createIndicator(x - 1, y, piece);
                 createIndicator(x + 1, y + 1, piece);
@@ -175,6 +181,7 @@ public class Grid : MonoBehaviour
                 createIndicator(x + 1, y + 1, piece);
                 createIndicator(x, y + 1, piece);
                 createIndicator(x, y - 1, piece);
+                canCastle(piece);
                 break;
         }
     }
@@ -235,20 +242,12 @@ public class Grid : MonoBehaviour
             moves.Add(new Vector3(x, y, -1));
             // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
         }
-        if (
-            onBoard(x + 1, y)
-            && getPosition(x + 1, y) != null
-            && piece.GetPlayer() != getPosition(x + 1, y).GetPlayer()
-        )
+        if (onBoard(x + 1, y) && getPosition(x + 1, y) != null && piece.GetPlayer() != getPosition(x + 1, y).GetPlayer())
         {
             moves.Add(new Vector3(x + 1, y, -1));
             // Instantiate(moveIndicator, new Vector3(x + 1, y, -1), Quaternion.identity);
         }
-        if (
-            onBoard(x - 1, y)
-            && getPosition(x - 1, y) != null
-            && piece.GetPlayer() != getPosition(x - 1, y).GetPlayer()
-        )
+        if (onBoard(x - 1, y) && getPosition(x - 1, y) != null && piece.GetPlayer() != getPosition(x - 1, y).GetPlayer())
         {
             moves.Add(new Vector3(x - 1, y, -1));
             // Instantiate(moveIndicator, new Vector3(x - 1, y, -1), Quaternion.identity);
@@ -375,9 +374,10 @@ public class Grid : MonoBehaviour
         Vector2 originalPos = new Vector2();
         originalPos.x = piece.GetX();
         originalPos.y = piece.GetY();
-
+        //Debug.Log("my moves");
         for (int j = 0; j < myMoves.Count; j++)
         {
+            //Debug.Log(myMoves[j]);
             //if the move of the piece would take an enemy piece save that piece
             if (positions[(int)myMoves[j].x, (int)myMoves[j].y] != null)
             {
@@ -420,8 +420,45 @@ public class Grid : MonoBehaviour
             positions[(int)originalPos.x, (int)originalPos.y] = piece;
 
         }
+        if (legalMoves.Count >= 2)
+        {
+            if ((piece.name == "wKing" || piece.name == "bKing") && ((legalMoves[legalMoves.Count - 1].x == 6 && legalMoves[legalMoves.Count - 1].y == 0) || (legalMoves[legalMoves.Count - 1].x == 2 && legalMoves[legalMoves.Count - 1].y == 0)) && (castleLong || castleShort))
+            {
+                int moveIndex = -1;
+                Vector3 castleMove1 = new Vector3(3, legalMoves[legalMoves.Count - 1].y, -1);
+                Vector3 castleMove2 = new Vector3(5, legalMoves[legalMoves.Count - 1].y, -1);
+                for (int i = 0; i < legalMoves.Count; i++)
+                {
+                    if (legalMoves[i] == castleMove1 || legalMoves[i] == castleMove2)
+                    {
+                        moveIndex = i;
+                        break;
+                    }
+                }
+                if (moveIndex == -1)
+                {
+                    Debug.Log("move removed");
+                    legalMoves.RemoveAt(legalMoves.Count - 1);
+                    // Debug.Log("move" + legalMoves[moveIndex]);
+                    // if ((legalMoves[moveIndex].x == legalMoves[legalMoves.Count - 1].x - 1 && legalMoves[moveIndex].y == legalMoves[legalMoves.Count - 1].y) || (legalMoves[moveIndex].x == legalMoves[legalMoves.Count - 1].x + 1 && legalMoves[moveIndex].y == legalMoves[legalMoves.Count - 1].y))
+                    // {
+
+                    // }
+                    // else
+                    // {
+                    //     
+                    // }
+                }
+            }
+        }
         //Set the possible moves to the legal moves
         moves = legalMoves;
+
+        // Debug.Log("Legal moves");
+        // for (int i = 0; i < legalMoves.Count; i++)
+        // {
+        //     Debug.Log(legalMoves[i]);
+        // }
     }
 
     public Piece getPosition(int x, int y)
@@ -437,5 +474,62 @@ public class Grid : MonoBehaviour
     public void setPlayerToPlay(string player)
     {
         playerToplay = player;
+    }
+
+    private void canCastle(Piece king)
+    {
+        int kingX = king.GetX();
+        int kingY = king.GetY();
+        if (king.getHasMoved() == false)
+        {
+            if (king.GetPlayer() == getPlayerToPlay() && (getPosition(kingX - 1, kingY) == null && getPosition(kingX - 2, kingY) == null && getPosition(kingX - 3, kingY) == null && getPosition(kingX - 4, kingY).getHasMoved() == false && (getPosition(kingX - 4, kingY).name == "wRook" || getPosition(kingX - 4, kingY).name == "bRook")))
+            {
+                for (int i = 0; i < moves.Count; i++)
+                {
+                    if (moves[i].x == kingX - 1 && moves[i].y == kingY)
+                    {
+                        createIndicator(kingX - 2, kingY, king);
+                        castleLong = true;
+                        break;
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
+            else
+            {
+                castleLong = false;
+            }
+            if (king.GetPlayer() == getPlayerToPlay() && (getPosition(kingX + 1, kingY) == null && getPosition(kingX + 2, kingY) == null && getPosition(kingX + 3, kingY).getHasMoved() == false && (getPosition(kingX + 3, kingY).name == "wRook" || getPosition(kingX + 3, kingY).name == "bRook")))
+            {
+                for (int i = 0; i < moves.Count; i++)
+                {
+                    if (moves[i].x == kingX + 1 && moves[i].y == kingY)
+                    {
+                        createIndicator(kingX + 2, kingY, king);
+                        castleShort = true;
+                        break;
+                    }
+                    else
+                    {
+                        castleShort = false;
+                    }
+                }
+            }
+            // else {
+            //     castleShort = false;
+            // }
+        }
+
+    }
+    public bool getCastleShort()
+    {
+        return castleShort;
+    }
+    public bool getCastleLong()
+    {
+        return castleLong;
     }
 }
