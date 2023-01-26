@@ -171,20 +171,30 @@ public class Piece : MonoBehaviour
             }
             
             if(legalMove){
+                Debug.Log("move");
                 rectTransform.position = hitInfo.transform.position;
                 Debug.Log(controller.GetComponent<Grid>().getCastleShort());
                 if(controller.GetComponent<Grid>().getCastleLong() && (int)rectTransform.position.x == this.GetX() - 2){
                     Piece rook = controller.GetComponent<Grid>().getPosition(this.GetX() - 4, this.GetY()).GetComponent<Piece>();
                     rook.rectTransform.position = new Vector3(rectTransform.position.x + 1,rectTransform.position.y, -1 );
                     controller.GetComponent<Grid>().SetPosition(rook, (int)rectTransform.position.x + 1, (int)rectTransform.position.y);
+                    controller.GetComponent<Grid>().setcastleLong(false);
                 }  
                 if(controller.GetComponent<Grid>().getCastleShort() && (int)rectTransform.position.x == this.GetX() + 2){
                     Piece rook = controller.GetComponent<Grid>().getPosition(this.GetX() + 3, this.GetY()).GetComponent<Piece>();
                     rook.rectTransform.position = new Vector3(rectTransform.position.x - 1,rectTransform.position.y, -1 );
                     controller.GetComponent<Grid>().SetPosition(rook, (int)rectTransform.position.x - 1, (int)rectTransform.position.y);
+                    controller.GetComponent<Grid>().setCastleShort(false);
                 }
                 controller.GetComponent<Grid>().SetPosition(this,(int)rectTransform.position.x, (int)rectTransform.position.y );
-                
+                if(controller.GetComponent<Grid>().getenPassantWhite() && controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()-1).gameObject != null){
+                    Destroy(controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()-1).gameObject);
+                    controller.GetComponent<Grid>().setEnpassantWhite(false);
+                }
+                if(controller.GetComponent<Grid>().getenPassantBlack() && controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()+1).gameObject != null){
+                    Destroy(controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()+1).gameObject);
+                    controller.GetComponent<Grid>().setEnpassantBlack(false);
+                }
                 setHasMoved(true);
                 controller.GetComponent<Grid>().clearMoves();
                 controller.GetComponent<Grid>().DestroyIndicators();
@@ -197,7 +207,8 @@ public class Piece : MonoBehaviour
             }
                
             
-            if( takePiece && controller.GetComponent<Grid>().getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y ).GetPlayer() != GetPlayer()){
+            if( takePiece && controller.GetComponent<Grid>().getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer()){
+                Debug.Log("take");
                 rectTransform.position = hitInfo.transform.position;
                 Destroy(hitInfo.transform.gameObject);
                 controller.GetComponent<Grid>().SetPosition(this,(int)rectTransform.position.x, (int)rectTransform.position.y );
