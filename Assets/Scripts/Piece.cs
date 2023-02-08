@@ -147,7 +147,7 @@ public class Piece : MonoBehaviour
         GameObject[] indicators = GameObject.FindGameObjectsWithTag("MoveIndicator");
         bool legalMove = false;
         bool takePiece = false;
-        if( hitInfo)
+        if(hitInfo)
         {
             
             if(hitInfo.transform.tag == destinationTag )
@@ -224,6 +224,18 @@ public class Piece : MonoBehaviour
             }
             else{
                 rectTransform.position = new Vector3(GetX() , GetY(), - 1);
+            }
+            if (this.name == "wPawn" && GetY() == 7)
+            {
+                Debug.Log("White queen promotion");
+                this.name = "wQueen";
+                SetPiece();
+            }
+            else if (this.name == "bPawn" && GetY() == 0)
+            {
+                Debug.Log("Black queen promotion");
+                this.name = "bQueen";
+                SetPiece();
             }
         }
         rectTransform.GetComponent<Collider2D>().enabled = true;
