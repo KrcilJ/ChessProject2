@@ -58,7 +58,6 @@ public class Piece : MonoBehaviour
    private void Awake() {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
-
     }
  
 

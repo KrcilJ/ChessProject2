@@ -121,7 +121,7 @@ public class Grid : MonoBehaviour
 
     private Piece CreatePiece(string name, int x, int y)
     {
-        Piece obj = Instantiate(GeneralPiece, new Vector3(x, y), Quaternion.identity);
+        Piece obj = Instantiate(GeneralPiece, new Vector3(x, y, -1), Quaternion.Euler(0f, 0f, 180f));
         Piece piece = obj.GetComponent<Piece>();
         piece.name = name;
         piece.SetX(x);
