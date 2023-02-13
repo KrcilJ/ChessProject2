@@ -39,6 +39,9 @@ public class Grid : MonoBehaviour
     Move lastmove;
     void Start()
     {
+       
+    }
+    public void startGame(){
         GenerateGrid();
         playerWhite = new Piece[]
         {
@@ -85,7 +88,6 @@ public class Grid : MonoBehaviour
             positions[playerBlack[i].GetX(), playerBlack[i].GetY()] = playerBlack[i];
         }
     }
-
     void GenerateGrid()
     {
         for (int x = 0; x < width; x++)
