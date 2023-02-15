@@ -2,12 +2,17 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Networking.Transport;
 
 public class Grid : MonoBehaviour
 {
+
+    // Multiplayer logic
+    private int currentPlayer = -1;
+    private int numPlayers = -1;
     [SerializeField]
     private int width, height;
-
+    [SerializeField] private Animator menuAnimator;
     [SerializeField]
     private Tile tilePrefab;
 
@@ -19,6 +24,7 @@ public class Grid : MonoBehaviour
     private Piece selectedPiece;
     [SerializeField]
     GameObject moveIndicator;
+     //  [SerializeField] Camera camera;
     private string playerToplay = "white";
     private Piece[,] positions = new Piece[8, 8];
     private Piece[] playerBlack = new Piece[16];
@@ -37,11 +43,19 @@ public class Grid : MonoBehaviour
         public Piece piece;
     }
     Move lastmove;
+    private bool startAsBlack = false;
+    private bool startAsWhite = false;
     void Start()
     {
        
     }
+
+    void Awake(){
+        registerEvents();
+    }
+   
     public void startGame(){
+        menuAnimator.SetTrigger("NoMenu");
         GenerateGrid();
         playerWhite = new Piece[]
         {
@@ -87,6 +101,9 @@ public class Grid : MonoBehaviour
             positions[playerWhite[i].GetX(), playerWhite[i].GetY()] = playerWhite[i];
             positions[playerBlack[i].GetX(), playerBlack[i].GetY()] = playerBlack[i];
         }
+        if(currentPlayer == 1) {
+            cam.transform.rotation = Quaternion.Euler(0f, 0f, 180f);
+        }
     }
     void GenerateGrid()
     {
@@ -121,7 +138,15 @@ public class Grid : MonoBehaviour
 
     private Piece CreatePiece(string name, int x, int y)
     {
-        Piece obj = Instantiate(GeneralPiece, new Vector3(x, y, -1), Quaternion.Euler(0f, 0f, 180f));
+        Piece obj = null;
+        if(startAsBlack) {
+              obj = Instantiate(GeneralPiece, new Vector3(x, y, -1), Quaternion.Euler(0f, 0f, 180f));
+              
+             
+        }
+        else {
+             obj = Instantiate(GeneralPiece, new Vector3(x, y, -1), Quaternion.identity);
+        }
         Piece piece = obj.GetComponent<Piece>();
         piece.name = name;
         piece.SetX(x);
@@ -614,5 +639,39 @@ public class Grid : MonoBehaviour
     }
      public void setEnpassantWhite(bool value){
         enPassantWhite = value;
+    }
+
+    private void registerEvents(){
+        NetUtility.S_WELCOME += onWelcomeServer;
+        NetUtility.C_WELCOME += onWelcomeClient;
+        NetUtility.C_START_GAME += onStartGameClient;
+    }
+
+    private void onWelcomeServer(Message msg, NetworkConnection connection)
+    {
+        WelcomeMsg welcome = msg as WelcomeMsg;
+        welcome.player = ++numPlayers;
+        Server.Instance.sendToClient(connection, welcome);
+
+        if(numPlayers == 1) {
+            Server.Instance.broadcast(new StartGameMsg());
+        }
+    }
+       private void onWelcomeClient(Message msg)
+    {
+        WelcomeMsg welcome = msg as WelcomeMsg;
+        currentPlayer = welcome.player;
+        Debug.Log($"My assigned team is {welcome.player}");
+       // Client.Instance.sendToServer(welcome);
+    }
+
+    private void onStartGameClient(Message msg){
+        if(currentPlayer == 1) {
+            startAsBlack = true;
+        }
+        startGame();
+    }
+    private void unregisterEvents(){
+        
     }
 }

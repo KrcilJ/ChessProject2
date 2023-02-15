@@ -3338,6 +3338,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 8
   height: 8
+  menuAnimator: {fileID: 297812764}
   tilePrefab: {fileID: 3476471045376019524, guid: dfde694358704dc4db9be087202140b6, type: 3}
   cam: {fileID: 519420032}
   GeneralPiece: {fileID: 1195885044}

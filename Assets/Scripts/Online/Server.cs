@@ -114,7 +114,7 @@ public class Server : MonoBehaviour
   public void sendToClient(NetworkConnection connection, Message msg){
     DataStreamWriter writer;
     driver.BeginSend(connection, out writer);
-   // msg.serialize(ref writer);
+    msg.serialize(ref writer);
     driver.EndSend(writer);
   }
     public void broadcast (Message msg) {

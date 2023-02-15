@@ -10,11 +10,11 @@ public static class NetUtility
         var operationCode = (OperationCode)reader.ReadByte();
 
         switch(operationCode){
-            case OperationCode.KEEP_ALIVE: new KeepAliveMsg(reader); break;
-            // case OperationCode.WELCOME: new welcomeMsg(reader); break;
-            // case OperationCode.START_GAME: new startGameMsg(reader); break;
-            // case OperationCode.MAKE_MOVE: new makeMoveMsg(reader); break;
-            // case OperationCode.REMATCH: new rematchMsg(reader); break;
+            case OperationCode.KEEP_ALIVE: msg = new KeepAliveMsg(reader); break;
+            case OperationCode.WELCOME:msg = new WelcomeMsg(reader); break;
+            case OperationCode.START_GAME: msg = new StartGameMsg(reader); break;
+            // case OperationCode.MAKE_MOVE:msg = new makeMoveMsg(reader); break;
+            // case OperationCode.REMATCH: masg = new rematchMsg(reader); break;
             default:
                 Debug.Log("Message had an unrecognized operation code");
                 break;
@@ -43,6 +43,6 @@ public static Action<Message, NetworkConnection> S_KEEP_ALIVE;
 
 public static Action<Message, NetworkConnection> S_WELCOME;
 public static Action<Message, NetworkConnection> S_MAKE_MOVE;
-public static Action<Message, NetworkConnection> S_STAR_GAME;
+public static Action<Message, NetworkConnection> S_START_GAME;
 public static Action<Message, NetworkConnection> S_REMATCH;
 }

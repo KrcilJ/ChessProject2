@@ -83,7 +83,7 @@ public class Client : MonoBehaviour
             if (message == NetworkEvent.Type.Connect)
             {
                 //Handle the message
-                //sendToServer(new WelcomeMsg)
+                sendToServer(new WelcomeMsg());
                 Debug.Log("We are connected");
             }
             else if (message == NetworkEvent.Type.Data)
@@ -105,7 +105,7 @@ public class Client : MonoBehaviour
     {
         DataStreamWriter writer;
         driver.BeginSend(connection, out writer);
-         msg.serialize(ref writer);
+        msg.serialize(ref writer);
         driver.EndSend(writer);
     }
 

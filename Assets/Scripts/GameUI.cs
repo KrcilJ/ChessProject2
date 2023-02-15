@@ -42,13 +42,14 @@ public class GameUI : MonoBehaviour
        
     }
       public void hostGamePress(){
-         server.init(8007);
+        server.init(8007);
         client.init( 8007 ,"127.0.0.1");
+        menuAnimator.SetTrigger("ConnectionMenu");
         //menuAnimator.SetTrigger("NoMenu");
     }
      public void connectPress(){
         client.init( 8007 ,addressInput.text);
-        menuAnimator.SetTrigger("ConnectionMenu");
+        
     }
       public void onlineMenuBack(){
         menuAnimator.SetTrigger("MainMenu");
