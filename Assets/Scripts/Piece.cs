@@ -103,9 +103,22 @@ public class Piece : MonoBehaviour
     void OnMouseDown()
     {
         player = GetPlayer();
-        if(player != controller.GetComponent<Grid>().getPlayerToPlay()){
+        string playerToPlay = controller.GetComponent<Grid>().getPlayerToPlay();
+        int pTP;
+        if(playerToPlay == "white") {
+            pTP = 0;
+        } else {
+            pTP = 1;
+        }
+        if(player != playerToPlay){
+           
             return;
         }
+         if(controller.GetComponent<Grid>().getOnlineGame()) {
+                if(pTP != controller.GetComponent<Grid>().getPlayerTeam()) {
+                     return;
+                }
+            }
         controller.GetComponent<Grid>().DestroyIndicators();
         controller.GetComponent<Grid>().clearMoves();
         offset = rectTransform.position - MouseWorldPosition();    
@@ -170,9 +183,9 @@ public class Piece : MonoBehaviour
             }
             
             if(legalMove){
-                Debug.Log("move");
+                //Debug.Log("move");
                 rectTransform.position = hitInfo.transform.position;
-                Debug.Log(controller.GetComponent<Grid>().getCastleShort());
+                //Debug.Log(controller.GetComponent<Grid>().getCastleShort());
                 if(controller.GetComponent<Grid>().getCastleLong() && (int)rectTransform.position.x == this.GetX() - 2){
                     Piece rook = controller.GetComponent<Grid>().getPosition(this.GetX() - 4, this.GetY()).GetComponent<Piece>();
                     rook.rectTransform.position = new Vector3(rectTransform.position.x + 1,rectTransform.position.y, -1 );
@@ -207,7 +220,7 @@ public class Piece : MonoBehaviour
                
             
             if( takePiece && controller.GetComponent<Grid>().getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer()){
-                Debug.Log("take");
+                //Debug.Log("take");
                 rectTransform.position = hitInfo.transform.position;
                 Destroy(hitInfo.transform.gameObject);
                 controller.GetComponent<Grid>().SetPosition(this,(int)rectTransform.position.x, (int)rectTransform.position.y );
@@ -226,13 +239,13 @@ public class Piece : MonoBehaviour
             }
             if (this.name == "wPawn" && GetY() == 7)
             {
-                Debug.Log("White queen promotion");
+                //Debug.Log("White queen promotion");
                 this.name = "wQueen";
                 SetPiece();
             }
             else if (this.name == "bPawn" && GetY() == 0)
             {
-                Debug.Log("Black queen promotion");
+                //Debug.Log("Black queen promotion");
                 this.name = "bQueen";
                 SetPiece();
             }

@@ -33,8 +33,8 @@ public class GameUI : MonoBehaviour
     // Button presses
     public void localGamePress(){
         menuAnimator.SetTrigger("NoMenu");
-        server.init(8007);
-        client.init(8007,"127.0.0.1" );
+        // server.init(8007);
+        // client.init(8007,"127.0.0.1" );
         controller.GetComponent<Grid>().startGame();
     }
      public void onlineGamePress(){

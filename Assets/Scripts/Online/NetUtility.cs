@@ -13,13 +13,13 @@ public static class NetUtility
             case OperationCode.KEEP_ALIVE: msg = new KeepAliveMsg(reader); break;
             case OperationCode.WELCOME:msg = new WelcomeMsg(reader); break;
             case OperationCode.START_GAME: msg = new StartGameMsg(reader); break;
-            // case OperationCode.MAKE_MOVE:msg = new makeMoveMsg(reader); break;
+            case OperationCode.MAKE_MOVE:msg = new MakeMoveMsg(reader); break;
             // case OperationCode.REMATCH: masg = new rematchMsg(reader); break;
             default:
                 Debug.Log("Message had an unrecognized operation code");
                 break;
         }
-
+        //Debug.Log(msg);
         if(server != null){
             msg.receivedOnServer(connection);
         }
