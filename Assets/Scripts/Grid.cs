@@ -6,13 +6,17 @@ using Unity.Networking.Transport;
 
 public class Grid : MonoBehaviour
 {
-
     // Multiplayer logic
     private int currentPlayer = -1;
     private int numPlayers = -1;
+
     [SerializeField]
-    private int width, height;
-    [SerializeField] private Animator menuAnimator;
+    private int width,
+        height;
+
+    [SerializeField]
+    private Animator menuAnimator;
+
     [SerializeField]
     private Tile tilePrefab;
 
@@ -22,9 +26,11 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private Piece GeneralPiece;
     private Piece selectedPiece;
+
     [SerializeField]
     GameObject moveIndicator;
-     //  [SerializeField] Camera camera;
+
+    //  [SerializeField] Camera camera;
     private string playerToplay = "white";
     private Piece[,] positions = new Piece[8, 8];
     private Piece[] playerBlack = new Piece[16];
@@ -36,25 +42,27 @@ public class Grid : MonoBehaviour
     private bool castleShort = false;
     private bool enPassantWhite = false;
     private bool enPassantBlack = false;
+
     public struct Move
     {
         public Vector2 originalPos;
         public Vector2 currentPos;
         public Piece piece;
     }
+
     Move lastmove;
     private bool startAsBlack = false;
     private bool startAsWhite = false;
-    void Start()
-    {
-       
-    }
+    private bool onlineGame = false;
+    void Start() { }
 
-    void Awake(){
+    void Awake()
+    {
         registerEvents();
     }
-   
-    public void startGame(){
+
+    public void startGame()
+    {
         menuAnimator.SetTrigger("NoMenu");
         GenerateGrid();
         playerWhite = new Piece[]
@@ -101,10 +109,12 @@ public class Grid : MonoBehaviour
             positions[playerWhite[i].GetX(), playerWhite[i].GetY()] = playerWhite[i];
             positions[playerBlack[i].GetX(), playerBlack[i].GetY()] = playerBlack[i];
         }
-        if(currentPlayer == 1) {
+        if (currentPlayer == 1)
+        {
             cam.transform.rotation = Quaternion.Euler(0f, 0f, 180f);
         }
     }
+
     void GenerateGrid()
     {
         for (int x = 0; x < width; x++)
@@ -128,24 +138,42 @@ public class Grid : MonoBehaviour
         lastmove.originalPos = new Vector2(piece.GetX(), piece.GetY());
         lastmove.currentPos = new Vector2(x, y);
         Vector3 kingPos = findKing(playerToplay);
-        Tile kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
+        Tile kingTile = GameObject
+            .Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y)
+            .GetComponent<Tile>();
         kingTile.resetColor(); //if the king was in check, reset the color of the king square to the original tile color
         positions[x, y] = piece;
         positions[piece.GetX(), piece.GetY()] = null;
         piece.SetX(x);
         piece.SetY(y);
+
+        if(onlineGame) {
+            MakeMoveMsg move = new MakeMoveMsg();
+            move.originalX = (int)lastmove.originalPos.x;
+            move.originalY = (int)lastmove.originalPos.y;
+            move.goalX = x;
+            move.goalY = y;
+            if(piece.GetPlayer() == "white") {
+                move.team = 0;
+            }
+            else{
+                move.team = 1;
+            }
+            Client.Instance.sendToServer(move);
+        }
+        
     }
 
     private Piece CreatePiece(string name, int x, int y)
     {
         Piece obj = null;
-        if(startAsBlack) {
-              obj = Instantiate(GeneralPiece, new Vector3(x, y, -1), Quaternion.Euler(0f, 0f, 180f));
-              
-             
+        if (startAsBlack)
+        {
+            obj = Instantiate(GeneralPiece, new Vector3(x, y, -1), Quaternion.Euler(0f, 0f, 180f));
         }
-        else {
-             obj = Instantiate(GeneralPiece, new Vector3(x, y, -1), Quaternion.identity);
+        else
+        {
+            obj = Instantiate(GeneralPiece, new Vector3(x, y, -1), Quaternion.identity);
         }
         Piece piece = obj.GetComponent<Piece>();
         piece.name = name;
@@ -220,8 +248,9 @@ public class Grid : MonoBehaviour
                 createIndicator(x + 1, y + 1, piece);
                 createIndicator(x, y + 1, piece);
                 createIndicator(x, y - 1, piece);
-                if(piece.GetPlayer() == getPlayerToPlay()) {
-                   canCastle(piece); 
+                if (piece.GetPlayer() == getPlayerToPlay())
+                {
+                    canCastle(piece);
                 }
                 break;
         }
@@ -283,12 +312,20 @@ public class Grid : MonoBehaviour
             moves.Add(new Vector3(x, y, -1));
             // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
         }
-        if (onBoard(x + 1, y) && getPosition(x + 1, y) != null && piece.GetPlayer() != getPosition(x + 1, y).GetPlayer())
+        if (
+            onBoard(x + 1, y)
+            && getPosition(x + 1, y) != null
+            && piece.GetPlayer() != getPosition(x + 1, y).GetPlayer()
+        )
         {
             moves.Add(new Vector3(x + 1, y, -1));
             // Instantiate(moveIndicator, new Vector3(x + 1, y, -1), Quaternion.identity);
         }
-        if (onBoard(x - 1, y) && getPosition(x - 1, y) != null && piece.GetPlayer() != getPosition(x - 1, y).GetPlayer())
+        if (
+            onBoard(x - 1, y)
+            && getPosition(x - 1, y) != null
+            && piece.GetPlayer() != getPosition(x - 1, y).GetPlayer()
+        )
         {
             moves.Add(new Vector3(x - 1, y, -1));
             // Instantiate(moveIndicator, new Vector3(x - 1, y, -1), Quaternion.identity);
@@ -406,7 +443,6 @@ public class Grid : MonoBehaviour
                         return new Vector3(i, j, -1);
                     }
                 }
-
             }
         }
         return new Vector3(-1, -1, -1);
@@ -429,8 +465,7 @@ public class Grid : MonoBehaviour
     public void legalMoves(Piece piece)
     {
         string playerToPlay = getPlayerToPlay();
-        List<Vector3> legalMoves = new List<Vector3>(); ;
-
+        List<Vector3> legalMoves = new List<Vector3>();
         List<Vector3> myMoves = new List<Vector3>(moves); //save the current pieces possible moves
         Piece pieceToTake = null;
         clearMoves();
@@ -451,7 +486,9 @@ public class Grid : MonoBehaviour
         if (isInCheck(playerToPlay))
         {
             Vector3 kingPos = findKing(playerToplay);
-            kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
+            kingTile = GameObject
+                .Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y)
+                .GetComponent<Tile>();
             kingTile.tileRed();
         }
         //Save the original position of the piece
@@ -502,15 +539,16 @@ public class Grid : MonoBehaviour
             }
             //Set the piece to its original position
             positions[(int)originalPos.x, (int)originalPos.y] = piece;
-
         }
         if ((piece.name == "wKing" || piece.name == "bKing") && legalMoves.Count >= 2)
         {
-            if ( ((legalMoves[legalMoves.Count - 1].x == 6 && legalMoves[legalMoves.Count - 1].y == 0) || (legalMoves[legalMoves.Count - 1].x == 2 && legalMoves[legalMoves.Count - 1].y == 0)) && (castleLong || castleShort))
+            if (((legalMoves[legalMoves.Count - 1].x == 6 && (legalMoves[legalMoves.Count - 1].y == 0 || legalMoves[legalMoves.Count - 1].y == 7)) || (legalMoves[legalMoves.Count - 1].x == 2 && (legalMoves[legalMoves.Count - 1].y == 0 || legalMoves[legalMoves.Count - 1].y == 7))) && (castleLong || castleShort))
             {
                 int moveIndex = -1;
                 Vector3 castleMove1 = new Vector3(3, legalMoves[legalMoves.Count - 1].y, -1);
                 Vector3 castleMove2 = new Vector3(5, legalMoves[legalMoves.Count - 1].y, -1);
+                Debug.Log("castle move 1" + castleMove1);
+                Debug.Log("castle move 2" + castleMove2);
                 for (int i = 0; i < legalMoves.Count; i++)
                 {
                     if (legalMoves[i] == castleMove1 || legalMoves[i] == castleMove2)
@@ -530,13 +568,14 @@ public class Grid : MonoBehaviour
                     // }
                     // else
                     // {
-                    //     
+                    //
                     // }
                 }
             }
         }
-        else if((piece.name == "wKing" || piece.name == "bKing") && ((legalMoves[legalMoves.Count - 1].x == 6 && legalMoves[legalMoves.Count - 1].y == 0) || (legalMoves[legalMoves.Count - 1].x == 2 && legalMoves[legalMoves.Count - 1].y == 0)) && (castleLong || castleShort)){
-            Debug.Log("move removed");
+        else if ((piece.name == "wKing" || piece.name == "bKing")&& ((legalMoves[legalMoves.Count - 1].x == 6 && (legalMoves[legalMoves.Count - 1].y == 0 || (legalMoves[legalMoves.Count - 1].y == 7)))|| (legalMoves[legalMoves.Count - 1].x == 2 && (legalMoves[legalMoves.Count - 1].y == 0 || legalMoves[legalMoves.Count - 1].y == 7)))&& (castleLong || castleShort))
+        {
+            //Debug.Log("move removed");
             legalMoves.RemoveAt(legalMoves.Count - 1);
         }
         //Set the possible moves to the legal moves
@@ -570,7 +609,20 @@ public class Grid : MonoBehaviour
         int kingY = king.GetY();
         if (king.getHasMoved() == false)
         {
-            if (king.GetPlayer() == getPlayerToPlay() && getPosition(kingX - 4, kingY) != null && (getPosition(kingX - 1, kingY) == null && getPosition(kingX - 2, kingY) == null && getPosition(kingX - 3, kingY) == null && getPosition(kingX - 4, kingY).getHasMoved() == false && (getPosition(kingX - 4, kingY).name == "wRook" || getPosition(kingX - 4, kingY).name == "bRook")))
+            if (
+                king.GetPlayer() == getPlayerToPlay()
+                && getPosition(kingX - 4, kingY) != null
+                && (
+                    getPosition(kingX - 1, kingY) == null
+                    && getPosition(kingX - 2, kingY) == null
+                    && getPosition(kingX - 3, kingY) == null
+                    && getPosition(kingX - 4, kingY).getHasMoved() == false
+                    && (
+                        getPosition(kingX - 4, kingY).name == "wRook"
+                        || getPosition(kingX - 4, kingY).name == "bRook"
+                    )
+                )
+            )
             {
                 for (int i = 0; i < moves.Count; i++)
                 {
@@ -580,17 +632,26 @@ public class Grid : MonoBehaviour
                         castleLong = true;
                         break;
                     }
-                    else
-                    {
-
-                    }
+                    else { }
                 }
             }
             else
             {
                 castleLong = false;
             }
-            if (king.GetPlayer() == getPlayerToPlay() && getPosition(kingX + 3, kingY)!=null && (getPosition(kingX + 1, kingY) == null && getPosition(kingX + 2, kingY) == null && getPosition(kingX + 3, kingY).getHasMoved() == false && (getPosition(kingX + 3, kingY).name == "wRook" || getPosition(kingX + 3, kingY).name == "bRook")))
+            if (
+                king.GetPlayer() == getPlayerToPlay()
+                && getPosition(kingX + 3, kingY) != null
+                && (
+                    getPosition(kingX + 1, kingY) == null
+                    && getPosition(kingX + 2, kingY) == null
+                    && getPosition(kingX + 3, kingY).getHasMoved() == false
+                    && (
+                        getPosition(kingX + 3, kingY).name == "wRook"
+                        || getPosition(kingX + 3, kingY).name == "bRook"
+                    )
+                )
+            )
             {
                 for (int i = 0; i < moves.Count; i++)
                 {
@@ -606,72 +667,127 @@ public class Grid : MonoBehaviour
                     }
                 }
             }
-            else {
+            else
+            {
                 castleShort = false;
             }
         }
-
     }
+
     public bool getCastleShort()
     {
         return castleShort;
     }
+
     public bool getCastleLong()
     {
         return castleLong;
     }
-    public void setCastleShort(bool value){
+
+    public void setCastleShort(bool value)
+    {
         castleShort = value;
     }
-    public void setcastleLong(bool value){
+
+    public void setcastleLong(bool value)
+    {
         castleLong = value;
     }
+
     public bool getenPassantWhite()
     {
         return enPassantWhite;
     }
-    public void setEnpassantBlack(bool value){
+
+    public void setEnpassantBlack(bool value)
+    {
         enPassantBlack = value;
     }
+
     public bool getenPassantBlack()
     {
         return enPassantBlack;
     }
-     public void setEnpassantWhite(bool value){
+
+    public void setEnpassantWhite(bool value)
+    {
         enPassantWhite = value;
     }
 
-    private void registerEvents(){
+    private void registerEvents()
+    {
         NetUtility.S_WELCOME += onWelcomeServer;
         NetUtility.C_WELCOME += onWelcomeClient;
         NetUtility.C_START_GAME += onStartGameClient;
+        NetUtility.S_MAKE_MOVE += onMakeMoveServer;
+        NetUtility.C_MAKE_MOVE += onMakeMoveClient;
     }
 
     private void onWelcomeServer(Message msg, NetworkConnection connection)
     {
+        onlineGame = true;
         WelcomeMsg welcome = msg as WelcomeMsg;
         welcome.player = ++numPlayers;
         Server.Instance.sendToClient(connection, welcome);
 
-        if(numPlayers == 1) {
+        if (numPlayers == 1)
+        {
             Server.Instance.broadcast(new StartGameMsg());
         }
     }
-       private void onWelcomeClient(Message msg)
+     private void onMakeMoveServer(Message msg, NetworkConnection connection)
     {
+        Server.Instance.broadcast(msg);
+    }
+    private void onWelcomeClient(Message msg)
+    {
+        onlineGame = true;
         WelcomeMsg welcome = msg as WelcomeMsg;
         currentPlayer = welcome.player;
         Debug.Log($"My assigned team is {welcome.player}");
-       // Client.Instance.sendToServer(welcome);
+        // Client.Instance.sendToServer(welcome);
     }
 
-    private void onStartGameClient(Message msg){
-        if(currentPlayer == 1) {
+    private void onStartGameClient(Message msg)
+    {
+        if (currentPlayer == 1)
+        {
             startAsBlack = true;
         }
         startGame();
     }
-    private void unregisterEvents(){
-        
+    private void onMakeMoveClient(Message msg)
+    {
+        MakeMoveMsg move = msg as MakeMoveMsg;
+        //Debug.Log($"{move.team}, {move.originalX}, {move.originalY} --> {move.goalX}, {move.goalY} ");
+        if(move.team != currentPlayer) {
+            Piece piece = getPosition(move.originalX, move.originalY);
+           
+            if(piece == null){
+                return;
+            }
+            Piece pieceToTake = getPosition(move.goalX, move.goalY);
+            if(pieceToTake != null) {
+                Destroy(pieceToTake.gameObject);
+            }
+            piece.transform.position = new Vector3(move.goalX,move.goalY, -1 );
+            SetPosition(piece, move.goalX, move.goalY);
+            if(move.team == 0) {
+                setPlayerToPlay("black");
+            }
+            else if(move.team == 1) {
+                setPlayerToPlay("white");
+            }
+        }
+    }
+    private void unregisterEvents() { }
+
+    public int getPlayerTeam()
+    {
+        return currentPlayer;
+    }
+       public bool getOnlineGame()
+    {
+        return onlineGame;
     }
 }
