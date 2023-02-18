@@ -47,8 +47,10 @@ public class GameUI : MonoBehaviour
         menuAnimator.SetTrigger("ConnectionMenu");
         //menuAnimator.SetTrigger("NoMenu");
     }
+    //TODO
+    //Change to the input field
      public void connectPress(){
-        client.init( 8007 ,addressInput.text);
+        client.init( 8007 ,"127.0.0.1");
         
     }
       public void onlineMenuBack(){

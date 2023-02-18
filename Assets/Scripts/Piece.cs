@@ -201,11 +201,16 @@ public class Piece : MonoBehaviour
                 controller.GetComponent<Grid>().SetPosition(this,(int)rectTransform.position.x, (int)rectTransform.position.y );
                 if(controller.GetComponent<Grid>().getenPassantWhite() && controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()-1).gameObject != null){
                     Destroy(controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()-1).gameObject);
-                    controller.GetComponent<Grid>().setEnpassantWhite(false);
+                    if(!controller.GetComponent<Grid>().getOnlineGame()) {
+                        controller.GetComponent<Grid>().setEnpassantWhite(false);
+                    }
+                    
                 }
                 if(controller.GetComponent<Grid>().getenPassantBlack() && controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()+1).gameObject != null){
                     Destroy(controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()+1).gameObject);
-                    controller.GetComponent<Grid>().setEnpassantBlack(false);
+                   if(!controller.GetComponent<Grid>().getOnlineGame()) {
+                        controller.GetComponent<Grid>().setEnpassantBlack(false);
+                    }
                 }
                 setHasMoved(true);
                 controller.GetComponent<Grid>().clearMoves();

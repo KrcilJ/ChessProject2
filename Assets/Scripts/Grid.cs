@@ -545,14 +545,22 @@ public class Grid : MonoBehaviour
             if (((legalMoves[legalMoves.Count - 1].x == 6 && (legalMoves[legalMoves.Count - 1].y == 0 || legalMoves[legalMoves.Count - 1].y == 7)) || (legalMoves[legalMoves.Count - 1].x == 2 && (legalMoves[legalMoves.Count - 1].y == 0 || legalMoves[legalMoves.Count - 1].y == 7))) && (castleLong || castleShort))
             {
                 int moveIndex = -1;
+                Vector3 moveToFind;
                 Vector3 castleMove1 = new Vector3(3, legalMoves[legalMoves.Count - 1].y, -1);
                 Vector3 castleMove2 = new Vector3(5, legalMoves[legalMoves.Count - 1].y, -1);
-                Debug.Log("castle move 1" + castleMove1);
-                Debug.Log("castle move 2" + castleMove2);
+                if(legalMoves[legalMoves.Count - 1].x == 6) {
+                    moveToFind = castleMove2;
+                }
+                else{
+                    moveToFind = castleMove1;
+                }
+                
                 for (int i = 0; i < legalMoves.Count; i++)
                 {
-                    if (legalMoves[i] == castleMove1 || legalMoves[i] == castleMove2)
+                    Debug.Log("Legal move" + i + legalMoves[i]);
+                    if (legalMoves[i] == moveToFind)
                     {
+                        Debug.Log("Found Castle move" + legalMoves[i]);
                         moveIndex = i;
                         break;
                     }
@@ -770,6 +778,19 @@ public class Grid : MonoBehaviour
             if(pieceToTake != null) {
                 Destroy(pieceToTake.gameObject);
             }
+            int xDiff = Math.Abs(move.originalX - move.goalX);
+            if(piece.name == "wPawn" && xDiff == 1) {
+                pieceToTake = getPosition(move.goalX , move.goalY - 1);
+                if(pieceToTake != null) {
+                Destroy(pieceToTake.gameObject);
+            }
+            }
+            if(piece.name == "bPawn" && xDiff == 1 ) {
+                pieceToTake = getPosition(move.goalX , move.goalY + 1);
+                if(pieceToTake != null) {
+                Destroy(pieceToTake.gameObject);
+            }
+            }
             piece.transform.position = new Vector3(move.goalX,move.goalY, -1 );
             SetPosition(piece, move.goalX, move.goalY);
             if(move.team == 0) {
@@ -777,8 +798,8 @@ public class Grid : MonoBehaviour
             }
             else if(move.team == 1) {
                 setPlayerToPlay("white");
-            }
-        }
+            }      
+    }
     }
     private void unregisterEvents() { }
 
