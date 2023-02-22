@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-
+using TMPro;
 public class Piece : MonoBehaviour
 {
     [SerializeField] public Sprite bBishop, bRook, bPawn, bQueen, bKing, bKnight;
     [SerializeField] public Sprite wBishop, wRook, wPawn, wQueen, wKing, wKnight;
     [SerializeField] public Sprite moveIndicator;
+    [SerializeField] private Animator menuAnimator;
+    [SerializeField] private TMP_Text lostText;
     public GameObject controller;
     private int xCord = -1;
     private int yCord = -1;
@@ -35,7 +37,6 @@ public class Piece : MonoBehaviour
     }
 
     public void SetPiece(){
-        controller = GameObject.FindGameObjectWithTag("GameController");
           switch (this.name)
         {
             case "bQueen": this.GetComponent<SpriteRenderer>().sprite = bQueen; player = "black"; break;
@@ -58,6 +59,7 @@ public class Piece : MonoBehaviour
    private void Awake() {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
+        controller = GameObject.FindGameObjectWithTag("GameController");
     }
  
 
@@ -99,9 +101,18 @@ public class Piece : MonoBehaviour
 //     return mousePos;
 //    }
  Vector3 offset;
- 
+    public void gameOver(string player, int iWon){
+        if(iWon == 0) {
+            lostText.text = "Player " + player + " lost";     
+        }
+        else if(iWon == 1){
+            lostText.text = "Player " + player + " won";   
+        }
+        menuAnimator.SetTrigger("lostScreen");
+    }
     void OnMouseDown()
     {
+        Debug.Log("mouse down");
         player = GetPlayer();
         string playerToPlay = controller.GetComponent<Grid>().getPlayerToPlay();
         int pTP;
@@ -121,8 +132,14 @@ public class Piece : MonoBehaviour
             }
         controller.GetComponent<Grid>().DestroyIndicators();
         controller.GetComponent<Grid>().clearMoves();
-        offset = rectTransform.position - MouseWorldPosition();    
+        offset = rectTransform.position - MouseWorldPosition();
+        if(controller.GetComponent<Grid>().checkmate(playerToPlay)){
+            gameOver(playerToPlay, 0);
+            return;
+        }    
         rectTransform.GetComponent<Collider2D>().enabled = false;
+
+        
         if(this != null){
                 controller.GetComponent<Grid>().GenerateIndicators(this);
                 controller.GetComponent<Grid>().legalMoves(this);

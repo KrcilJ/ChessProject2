@@ -6,7 +6,7 @@ public enum OperationCode{
     WELCOME = 2,
     START_GAME = 3,
     MAKE_MOVE = 4,
-    REMATCH = 5
+    GAME_OVER = 5
 }
 public class Message
 {

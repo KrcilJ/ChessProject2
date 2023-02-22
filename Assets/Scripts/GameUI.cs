@@ -31,6 +31,12 @@ public class GameUI : MonoBehaviour
     }
 
     // Button presses
+      public void gameOverMainMenuPress(){
+        menuAnimator.SetTrigger("MainMenu");
+        Client.Instance.shutdown();
+        Server.Instance.shutdown();
+      controller.GetComponent<Grid>().destroyAssets();
+    }
     public void localGamePress(){
         menuAnimator.SetTrigger("NoMenu");
         // server.init(8007);
