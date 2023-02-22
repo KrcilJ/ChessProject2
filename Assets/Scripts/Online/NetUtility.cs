@@ -14,7 +14,7 @@ public static class NetUtility
             case OperationCode.WELCOME:msg = new WelcomeMsg(reader); break;
             case OperationCode.START_GAME: msg = new StartGameMsg(reader); break;
             case OperationCode.MAKE_MOVE:msg = new MakeMoveMsg(reader); break;
-            // case OperationCode.REMATCH: masg = new rematchMsg(reader); break;
+            case OperationCode.GAME_OVER: msg = new GameOverMsg(reader); break;
             default:
                 Debug.Log("Message had an unrecognized operation code");
                 break;
@@ -37,12 +37,12 @@ public static Action<Message> C_START_GAME;
 
 public static Action<Message> C_MAKE_MOVE;
 
-public static Action<Message> C_REMATCH;
+public static Action<Message> C_GAME_OVER;
 
 public static Action<Message, NetworkConnection> S_KEEP_ALIVE;
 
 public static Action<Message, NetworkConnection> S_WELCOME;
 public static Action<Message, NetworkConnection> S_MAKE_MOVE;
 public static Action<Message, NetworkConnection> S_START_GAME;
-public static Action<Message, NetworkConnection> S_REMATCH;
+public static Action<Message, NetworkConnection> S_GAME_OVER;
 }

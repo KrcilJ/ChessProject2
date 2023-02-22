@@ -63,6 +63,7 @@ public class Grid : MonoBehaviour
 
     public void startGame()
     {
+        playerToplay = "white";
         menuAnimator.SetTrigger("NoMenu");
         GenerateGrid();
         playerWhite = new Piece[]
@@ -112,6 +113,9 @@ public class Grid : MonoBehaviour
         if (currentPlayer == 1)
         {
             cam.transform.rotation = Quaternion.Euler(0f, 0f, 180f);
+        }
+        else{
+            cam.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
         }
     }
 
@@ -177,6 +181,7 @@ public class Grid : MonoBehaviour
         }
         Piece piece = obj.GetComponent<Piece>();
         piece.name = name;
+        piece.GetComponent<Collider2D>().enabled = true;
         piece.SetX(x);
         piece.SetY(y);
         piece.SetPiece();
@@ -539,6 +544,10 @@ public class Grid : MonoBehaviour
             }
             //Set the piece to its original position
             positions[(int)originalPos.x, (int)originalPos.y] = piece;
+            if(legalMoves.Count == 0) {
+                moves = legalMoves;
+                return;
+            }
         }
         if ((piece.name == "wKing" || piece.name == "bKing") && legalMoves.Count >= 2)
         {
@@ -596,6 +605,35 @@ public class Grid : MonoBehaviour
         // }
     }
 
+    public bool checkmate(string player){
+        for (int i = 0; i < 8; i++)
+        {
+            for (int k = 0; k < 8; k++)
+            {
+                Piece a = getPosition(i, k);
+                if (a != null && a.GetPlayer() == player)
+                {
+                    GenerateIndicators(a);
+                    legalMoves(a);
+                    if(moves.Count != 0) {
+                        clearMoves();
+                        return false;
+                    }
+                }
+            }
+        }
+          if(onlineGame) {
+            GameOverMsg gameOverMsg = new GameOverMsg();
+            if(player == "white") {
+                gameOverMsg.team = 1;
+            }
+            else{
+                gameOverMsg.team = 0;
+            }
+            Client.Instance.sendToServer(gameOverMsg);
+        }
+        return true;
+    }
     public Piece getPosition(int x, int y)
     {
         return positions[x, y];
@@ -729,6 +767,8 @@ public class Grid : MonoBehaviour
         NetUtility.C_START_GAME += onStartGameClient;
         NetUtility.S_MAKE_MOVE += onMakeMoveServer;
         NetUtility.C_MAKE_MOVE += onMakeMoveClient;
+        NetUtility.S_GAME_OVER += onGameOverServer;
+        NetUtility.C_GAME_OVER += onGameOverClient;
     }
 
     private void onWelcomeServer(Message msg, NetworkConnection connection)
@@ -778,18 +818,29 @@ public class Grid : MonoBehaviour
             if(pieceToTake != null) {
                 Destroy(pieceToTake.gameObject);
             }
+            //Handle enpassant
             int xDiff = Math.Abs(move.originalX - move.goalX);
             if(piece.name == "wPawn" && xDiff == 1) {
                 pieceToTake = getPosition(move.goalX , move.goalY - 1);
                 if(pieceToTake != null) {
                 Destroy(pieceToTake.gameObject);
-            }
+                }
             }
             if(piece.name == "bPawn" && xDiff == 1 ) {
                 pieceToTake = getPosition(move.goalX , move.goalY + 1);
                 if(pieceToTake != null) {
                 Destroy(pieceToTake.gameObject);
+                }
             }
+            //Handle queen promotion
+            
+            if(piece.name == "wPawn" && move.goalY == 7) {
+                piece.name = "wQueen";
+                piece.SetPiece();
+            }
+            if(piece.name == "bPawn" && move.goalY == 0 ) {
+                piece.name = "bQueen";
+                piece.SetPiece();
             }
             piece.transform.position = new Vector3(move.goalX,move.goalY, -1 );
             SetPosition(piece, move.goalX, move.goalY);
@@ -801,7 +852,31 @@ public class Grid : MonoBehaviour
             }      
     }
     }
-    private void unregisterEvents() { }
+     private void onGameOverServer(Message msg, NetworkConnection connection)
+    {
+         GameOverMsg gameOverMsg = msg as GameOverMsg;
+        if(gameOverMsg.team == 0) {
+            
+           GeneralPiece.gameOver("white", 1);
+        }
+        else{
+           GeneralPiece.gameOver("black", 1);
+        }
+        //Server.Instance.broadcast(msg);
+    }
+     private void onGameOverClient(Message msg)
+    {
+       
+    }
+    private void unregisterEvents() {  
+        NetUtility.S_WELCOME -= onWelcomeServer;
+        NetUtility.C_WELCOME -= onWelcomeClient;
+        NetUtility.C_START_GAME -= onStartGameClient;
+        NetUtility.S_MAKE_MOVE -= onMakeMoveServer;
+        NetUtility.C_MAKE_MOVE -= onMakeMoveClient;
+        NetUtility.S_GAME_OVER -= onGameOverServer;
+        NetUtility.C_GAME_OVER -= onGameOverClient; 
+        }
 
     public int getPlayerTeam()
     {
@@ -810,5 +885,29 @@ public class Grid : MonoBehaviour
        public bool getOnlineGame()
     {
         return onlineGame;
+    }
+
+    public void destroyAssets(){
+        //unregisterEvents();
+     startAsBlack = false;
+     startAsWhite = false;
+     onlineGame = false;
+     numPlayers = -1;
+     currentPlayer = -1;
+     lastmove.piece = null;
+     
+         GameObject[] tiles = GameObject.FindGameObjectsWithTag("DropArea");
+        for (int i = 0; i < tiles.Length; i++)
+        {
+
+            Destroy(tiles[i]);
+        }
+          GameObject[] pieces = GameObject.FindGameObjectsWithTag("Piece");
+          //Destry all pieces except the general piece that has been initialized as a [Serailized field], always index 0 so start at index 1 to not destry it
+        for (int i = 1; i < pieces.Length; i++)
+        {
+           Debug.Log(pieces[i]);
+            Destroy(pieces[i]);
+        }
     }
 }

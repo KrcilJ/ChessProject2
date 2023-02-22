@@ -6,6 +6,7 @@ TagManager:
   tags:
   - DropArea
   - MoveIndicator
+  - Piece
   layers:
   - Default
   - TransparentFX

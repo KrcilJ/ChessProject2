@@ -9,7 +9,6 @@ public class MakeMoveMsg : Message
     public int goalX;
     public int goalY;
     public int team;
-    public int player {set; get;}
     public MakeMoveMsg(){
         code = OperationCode.MAKE_MOVE;
     }
