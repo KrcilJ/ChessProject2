@@ -112,7 +112,6 @@ public class Piece : MonoBehaviour
     }
     void OnMouseDown()
     {
-        Debug.Log("mouse down");
         player = GetPlayer();
         string playerToPlay = controller.GetComponent<Grid>().getPlayerToPlay();
         int pTP;
@@ -178,7 +177,6 @@ public class Piece : MonoBehaviour
         bool takePiece = false;
         if(hitInfo)
         {
-            
             if(hitInfo.transform.tag == destinationTag )
             {
                for (int i = 0; i < indicators.Length; i++)
@@ -271,6 +269,9 @@ public class Piece : MonoBehaviour
                 this.name = "bQueen";
                 SetPiece();
             }
+        }
+        else{
+            rectTransform.position = new Vector3(GetX() , GetY(), - 1);
         }
         rectTransform.GetComponent<Collider2D>().enabled = true;
     }
