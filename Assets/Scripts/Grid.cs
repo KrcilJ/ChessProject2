@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Networking.Transport;
+using Random = System.Random;
 
 public class Grid : MonoBehaviour
 {
@@ -16,7 +17,10 @@ public class Grid : MonoBehaviour
 
     [SerializeField]
     private Animator menuAnimator;
-
+    [SerializeField]
+    private GameObject forestTileDark;
+     [SerializeField]
+    private GameObject forestTileLight;
     [SerializeField]
     private Tile tilePrefab;
 
@@ -125,11 +129,19 @@ public class Grid : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                var spawnedTile = Instantiate(tilePrefab, new Vector3(x, y), Quaternion.identity);
-                spawnedTile.name = $"Tile {x} {y}";
-
+                  var spawnedTile = Instantiate(tilePrefab, new Vector3(x, y), Quaternion.identity);
+                  spawnedTile.name = $"Tile {x} {y}";
+                Random random = new Random();
+                int randomNumber = random.Next(0, 5);
                 bool isLigt = (x + y) % 2 != 0;
-                spawnedTile.isLight(isLigt);
+                if(isLigt) {
+                   // Instantiate(forestTileLight, new Vector3(x, y), Quaternion.Euler(0f, 0f, 90f * randomNumber));
+                    Instantiate(forestTileLight, new Vector3(x, y), Quaternion.Euler(0f, 0f, 90f * randomNumber));
+                }
+                else{
+                    Instantiate(forestTileDark, new Vector3(x, y), Quaternion.Euler(0f, 0f, 90f * randomNumber));
+                }
+                 spawnedTile.isLight(isLigt);
             }
         }
 
@@ -854,19 +866,25 @@ public class Grid : MonoBehaviour
     }
      private void onGameOverServer(Message msg, NetworkConnection connection)
     {
-         GameOverMsg gameOverMsg = msg as GameOverMsg;
-        if(gameOverMsg.team == 0) {
-            
-           GeneralPiece.gameOver("white", 1);
-        }
-        else{
-           GeneralPiece.gameOver("black", 1);
-        }
-        //Server.Instance.broadcast(msg);
+        
+        Server.Instance.broadcast(msg);
     }
      private void onGameOverClient(Message msg)
     {
-       
+        GameOverMsg gameOverMsg = msg as GameOverMsg;
+        if(gameOverMsg.team == 0 && currentPlayer == gameOverMsg.team) {
+            
+           GeneralPiece.gameOver("white", 1);
+        }
+        else if (gameOverMsg.team == 1 && currentPlayer == gameOverMsg.team){
+           GeneralPiece.gameOver("black", 1);
+        }
+         else if (gameOverMsg.team == 0 && currentPlayer != gameOverMsg.team){
+           GeneralPiece.gameOver("black", 0);
+        }
+         else if (gameOverMsg.team == 1 && currentPlayer != gameOverMsg.team){
+           GeneralPiece.gameOver("white", 0);
+        }
     }
     private void unregisterEvents() {  
         NetUtility.S_WELCOME -= onWelcomeServer;
