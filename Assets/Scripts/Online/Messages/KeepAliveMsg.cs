@@ -15,19 +15,19 @@ public class KeepAliveMsg : Message
 
     public override void serialize(ref DataStreamWriter writer)
     {
-       writer.WriteByte((byte) code);
+        writer.WriteByte((byte)code);
     }
     public override void deserialize(DataStreamReader reader)
     {
-      //Keep alive msg does not contain a message
+        //Keep alive msg does not contain a message
     }
 
     public override void receivedOnClient()
     {
-       NetUtility.C_KEEP_ALIVE?.Invoke(this);
+        NetUtility.C_KEEP_ALIVE?.Invoke(this);
     }
-      public override void receivedOnServer(NetworkConnection connection)
+    public override void receivedOnServer(NetworkConnection connection)
     {
-       NetUtility.S_KEEP_ALIVE?.Invoke(this, connection);
+        NetUtility.S_KEEP_ALIVE?.Invoke(this, connection);
     }
 }
