@@ -19,25 +19,31 @@ public class Piece : MonoBehaviour
     private string player = "white";
     private string playerToplay = "white";
     private string destinationTag = "DropArea";
- 
-    public int GetX(){
+    private Grid grid;
+    public int GetX()
+    {
         return xCord;
     }
-    public int GetY(){
+    public int GetY()
+    {
         return yCord;
     }
-    public void SetX(int x){
+    public void SetX(int x)
+    {
         xCord = x;
     }
-     public void SetY(int y){
+    public void SetY(int y)
+    {
         yCord = y;
     }
-    public string GetPlayer(){
+    public string GetPlayer()
+    {
         return player;
     }
 
-    public void SetPiece(){
-          switch (this.name)
+    public void SetPiece()
+    {
+        switch (this.name)
         {
             case "bQueen": this.GetComponent<SpriteRenderer>().sprite = bQueen; player = "black"; break;
             case "bKnight": this.GetComponent<SpriteRenderer>().sprite = bKnight; player = "black"; break;
@@ -56,206 +62,237 @@ public class Piece : MonoBehaviour
     /// <summary>
     /// Awake is called when the script instance is being loaded.
     /// </summary>
-   private void Awake() {
+    private void Awake()
+    {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
         controller = GameObject.FindGameObjectWithTag("GameController");
+        grid = controller.GetComponent<Grid>();
     }
- 
-
-//     public void OnBeginDrag(PointerEventData eventData) {
-//         Debug.Log("OnBeginDrag");
-//          canvasGroup.blocksRaycasts = false;
-//     }
 
 
-//     public void OnEndDrag(PointerEventData eventData) {
-//         Debug.Log("OnEndDrag");
-//          canvasGroup.blocksRaycasts = true;
-//     }
+    //     public void OnBeginDrag(PointerEventData eventData) {
+    //         Debug.Log("OnBeginDrag");
+    //          canvasGroup.blocksRaycasts = false;
+    //     }
 
-//     public void OnPointerDown(PointerEventData eventData) {
-//         Debug.Log("OnPointerDown");
-//     }
-//     public void OnDrag(PointerEventData eventData){         
-//         rectTransform.position = GetMousePos();       
-//    }
-//    void OnMouseUp()
-//     {
-//         Debug.Log("mouse ip");
-//         var rayOrigin = Camera.main.transform.position;
-//         var rayDirection = GetMousePos() - Camera.main.transform.position;
-//         RaycastHit hitInfo;
-//         if(Physics.Raycast(rayOrigin, rayDirection, out hitInfo))
-//         {
-//             if(hitInfo.transform.tag == destinationTag)
-//             {
-//                 rectTransform.position = hitInfo.transform.position;
-//             }
-//         }
-//         rectTransform.GetComponent<Collider2D>().enabled = true;
-//     }
-//    private Vector3 GetMousePos(){
-//     var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-//     mousePos.z = 0;
-//     return mousePos;
-//    }
- Vector3 offset;
-    public void gameOver(string player, int iWon){
-        if(iWon == 0) {
-            lostText.text = "Player " + player + " lost";     
+
+    //     public void OnEndDrag(PointerEventData eventData) {
+    //         Debug.Log("OnEndDrag");
+    //          canvasGroup.blocksRaycasts = true;
+    //     }
+
+    //     public void OnPointerDown(PointerEventData eventData) {
+    //         Debug.Log("OnPointerDown");
+    //     }
+    //     public void OnDrag(PointerEventData eventData){         
+    //         rectTransform.position = GetMousePos();       
+    //    }
+    //    void OnMouseUp()
+    //     {
+    //         Debug.Log("mouse ip");
+    //         var rayOrigin = Camera.main.transform.position;
+    //         var rayDirection = GetMousePos() - Camera.main.transform.position;
+    //         RaycastHit hitInfo;
+    //         if(Physics.Raycast(rayOrigin, rayDirection, out hitInfo))
+    //         {
+    //             if(hitInfo.transform.tag == destinationTag)
+    //             {
+    //                 rectTransform.position = hitInfo.transform.position;
+    //             }
+    //         }
+    //         rectTransform.GetComponent<Collider2D>().enabled = true;
+    //     }
+    //    private Vector3 GetMousePos(){
+    //     var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    //     mousePos.z = 0;
+    //     return mousePos;
+    //    }
+    Vector3 offset;
+    public void gameOver(string player, int iWon)
+    {
+        if (iWon == 0)
+        {
+            lostText.text = "Player " + player + " lost";
         }
-        else if(iWon == 1){
-            lostText.text = "Player " + player + " won";   
+        else if (iWon == 1)
+        {
+            lostText.text = "Player " + player + " won";
         }
         menuAnimator.SetTrigger("lostScreen");
     }
     void OnMouseDown()
     {
         player = GetPlayer();
-        string playerToPlay = controller.GetComponent<Grid>().getPlayerToPlay();
+        string playerToPlay = grid.getPlayerToPlay();
         int pTP;
-        if(playerToPlay == "white") {
+        if (playerToPlay == "white")
+        {
             pTP = 0;
-        } else {
+        }
+        else
+        {
             pTP = 1;
         }
-        if(player != playerToPlay){
-           
+        if (player != playerToPlay)
+        {
+
             return;
         }
-         if(controller.GetComponent<Grid>().getOnlineGame()) {
-                if(pTP != controller.GetComponent<Grid>().getPlayerTeam()) {
-                     return;
-                }
+        if (grid.getOnlineGame())
+        {
+            if (pTP != grid.getPlayerTeam())
+            {
+                return;
             }
-        controller.GetComponent<Grid>().DestroyIndicators();
-        controller.GetComponent<Grid>().clearMoves();
+        }
+        grid.DestroyIndicators();
+        grid.clearMoves();
         offset = rectTransform.position - MouseWorldPosition();
-        if(controller.GetComponent<Grid>().checkmate(playerToPlay)){
+        if (grid.checkmate(playerToPlay))
+        {
             gameOver(playerToPlay, 0);
             return;
-        }    
+        }
         rectTransform.GetComponent<Collider2D>().enabled = false;
+        grid.clearMoves();
 
-        
-        if(this != null){
-                controller.GetComponent<Grid>().GenerateIndicators(this);
-                controller.GetComponent<Grid>().legalMoves(this);
-                controller.GetComponent<Grid>().makeIndicators();
+        if (this != null)
+        {
+            Debug.Log("Actual moves");
+            grid.GenerateIndicators(this);
+
+            grid.legalMoves(this);
+            grid.makeIndicators();
         }
         // for (int i = 0; i < 8; i++)
         // {
         //     for (int k = 0; k < 8; k++)
         // {
-        //    Piece a = controller.GetComponent<Grid>().getPosition(i,k);
-        //    if (a != null && a.GetPlayer() == controller.GetComponent<Grid>().getPlayerToPlay())
+        //    Piece a = grid.getPosition(i,k);
+        //    if (a != null && a.GetPlayer() == grid.getPlayerToPlay())
         //    {
-        //     controller.GetComponent<Grid>().GenerateIndicators(a);
+        //     grid.GenerateIndicators(a);
         //    }
         // } 
         // }
-        //controller.GetComponent<Grid>().makeIndicators();      
-        
+        //grid.makeIndicators();      
+
     }
- 
+
     void OnMouseDrag()
     {
         rectTransform.position = MouseWorldPosition() + offset;
     }
- 
+
     void OnMouseUp()
     {
 
         var rayOrigin = Camera.main.transform.position;
         var rayDirection = MouseWorldPosition() - Camera.main.transform.position;
-         
+
         RaycastHit2D hitInfo;
         hitInfo = Physics2D.Raycast(MouseWorldPosition(), Vector2.zero);
         GameObject[] indicators = GameObject.FindGameObjectsWithTag("MoveIndicator");
         bool legalMove = false;
         bool takePiece = false;
-        if(hitInfo)
+        if (hitInfo)
         {
-            if(hitInfo.transform.tag == destinationTag )
+            if (hitInfo.transform.tag == destinationTag)
             {
-               for (int i = 0; i < indicators.Length; i++)
-               {
-                if(hitInfo.transform.position.x == indicators[i].transform.position.x && hitInfo.transform.position.y == indicators[i].transform.position.y){
-                    legalMove = true;
-                    break;
-                }                
-               }
+                for (int i = 0; i < indicators.Length; i++)
+                {
+                    if (hitInfo.transform.position.x == indicators[i].transform.position.x && hitInfo.transform.position.y == indicators[i].transform.position.y)
+                    {
+                        legalMove = true;
+                        break;
+                    }
+                }
             }
-            else{
-                 for (int i = 0; i < indicators.Length; i++)
-               {
-                if(hitInfo.transform.position.x == indicators[i].transform.position.x && hitInfo.transform.position.y == indicators[i].transform.position.y){
-                    takePiece = true;
-                    break;
-                }                
-               }                    
+            else
+            {
+                for (int i = 0; i < indicators.Length; i++)
+                {
+                    if (hitInfo.transform.position.x == indicators[i].transform.position.x && hitInfo.transform.position.y == indicators[i].transform.position.y)
+                    {
+                        takePiece = true;
+                        break;
+                    }
+                }
             }
-            
-            if(legalMove){
+
+            if (legalMove)
+            {
                 //Debug.Log("move");
                 rectTransform.position = hitInfo.transform.position;
-                //Debug.Log(controller.GetComponent<Grid>().getCastleShort());
-                if(controller.GetComponent<Grid>().getCastleLong() && (int)rectTransform.position.x == this.GetX() - 2){
-                    Piece rook = controller.GetComponent<Grid>().getPosition(this.GetX() - 4, this.GetY()).GetComponent<Piece>();
-                    rook.rectTransform.position = new Vector3(rectTransform.position.x + 1,rectTransform.position.y, -1 );
-                    controller.GetComponent<Grid>().SetPosition(rook, (int)rectTransform.position.x + 1, (int)rectTransform.position.y);
-                    controller.GetComponent<Grid>().setcastleLong(false);
-                }  
-                if(controller.GetComponent<Grid>().getCastleShort() && (int)rectTransform.position.x == this.GetX() + 2){
-                    Piece rook = controller.GetComponent<Grid>().getPosition(this.GetX() + 3, this.GetY()).GetComponent<Piece>();
-                    rook.rectTransform.position = new Vector3(rectTransform.position.x - 1,rectTransform.position.y, -1 );
-                    controller.GetComponent<Grid>().SetPosition(rook, (int)rectTransform.position.x - 1, (int)rectTransform.position.y);
-                    controller.GetComponent<Grid>().setCastleShort(false);
+                //Debug.Log(grid.getCastleShort());
+                if (grid.getCastleLong() && (int)rectTransform.position.x == this.GetX() - 2)
+                {
+                    Piece rook = grid.getPosition(this.GetX() - 4, this.GetY()).GetComponent<Piece>();
+                    rook.rectTransform.position = new Vector3(rectTransform.position.x + 1, rectTransform.position.y, -1);
+                    grid.SetPosition(rook, (int)rectTransform.position.x + 1, (int)rectTransform.position.y);
+                    grid.setcastleLong(false);
                 }
-                controller.GetComponent<Grid>().SetPosition(this,(int)rectTransform.position.x, (int)rectTransform.position.y );
-                if(controller.GetComponent<Grid>().getenPassantWhite() && controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()-1).gameObject != null){
-                    Destroy(controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()-1).gameObject);
-                    if(!controller.GetComponent<Grid>().getOnlineGame()) {
-                        controller.GetComponent<Grid>().setEnpassantWhite(false);
+                if (grid.getCastleShort() && (int)rectTransform.position.x == this.GetX() + 2)
+                {
+                    Piece rook = grid.getPosition(this.GetX() + 3, this.GetY()).GetComponent<Piece>();
+                    rook.rectTransform.position = new Vector3(rectTransform.position.x - 1, rectTransform.position.y, -1);
+                    grid.SetPosition(rook, (int)rectTransform.position.x - 1, (int)rectTransform.position.y);
+                    grid.setCastleShort(false);
+                }
+                grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+                if (grid.getenPassantWhite() && grid.getPosition(this.GetX(), this.GetY() - 1).gameObject != null)
+                {
+                    Destroy(grid.getPosition(this.GetX(), this.GetY() - 1).gameObject);
+                    if (!grid.getOnlineGame())
+                    {
+                        grid.setEnpassantWhite(false);
                     }
-                    
+
                 }
-                if(controller.GetComponent<Grid>().getenPassantBlack() && controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()+1).gameObject != null){
-                    Destroy(controller.GetComponent<Grid>().getPosition(this.GetX(), this.GetY()+1).gameObject);
-                   if(!controller.GetComponent<Grid>().getOnlineGame()) {
-                        controller.GetComponent<Grid>().setEnpassantBlack(false);
+                if (grid.getenPassantBlack() && grid.getPosition(this.GetX(), this.GetY() + 1).gameObject != null)
+                {
+                    Destroy(grid.getPosition(this.GetX(), this.GetY() + 1).gameObject);
+                    if (!grid.getOnlineGame())
+                    {
+                        grid.setEnpassantBlack(false);
                     }
                 }
                 setHasMoved(true);
-                controller.GetComponent<Grid>().clearMoves();
-                controller.GetComponent<Grid>().DestroyIndicators();
-                if(player == "white"){                  
-                     controller.GetComponent<Grid>().setPlayerToPlay("black");
+                grid.clearMoves();
+                grid.DestroyIndicators();
+                if (player == "white")
+                {
+                    grid.setPlayerToPlay("black");
                 }
-                else{
-                   controller.GetComponent<Grid>().setPlayerToPlay("white");
+                else
+                {
+                    grid.setPlayerToPlay("white");
                 }
             }
-               
-            
-            if( takePiece && controller.GetComponent<Grid>().getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer()){
+
+
+            if (takePiece && grid.getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer())
+            {
                 //Debug.Log("take");
                 rectTransform.position = hitInfo.transform.position;
                 Destroy(hitInfo.transform.gameObject);
-                controller.GetComponent<Grid>().SetPosition(this,(int)rectTransform.position.x, (int)rectTransform.position.y );
+                grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
                 setHasMoved(true);
-                controller.GetComponent<Grid>().clearMoves();
-                controller.GetComponent<Grid>().DestroyIndicators();
-               if(player == "white"){                  
-                     controller.GetComponent<Grid>().setPlayerToPlay("black");
+                grid.clearMoves();
+                grid.DestroyIndicators();
+                if (player == "white")
+                {
+                    grid.setPlayerToPlay("black");
                 }
-                else{
-                   controller.GetComponent<Grid>().setPlayerToPlay("white");
+                else
+                {
+                    grid.setPlayerToPlay("white");
                 }
             }
-            else{
-                rectTransform.position = new Vector3(GetX() , GetY(), - 1);
+            else
+            {
+                rectTransform.position = new Vector3(GetX(), GetY(), -1);
             }
             if (this.name == "wPawn" && GetY() == 7)
             {
@@ -270,12 +307,13 @@ public class Piece : MonoBehaviour
                 SetPiece();
             }
         }
-        else{
-            rectTransform.position = new Vector3(GetX() , GetY(), - 1);
+        else
+        {
+            rectTransform.position = new Vector3(GetX(), GetY(), -1);
         }
         rectTransform.GetComponent<Collider2D>().enabled = true;
     }
- 
+
     Vector3 MouseWorldPosition()
     {
         var mouseScreenPos = Input.mousePosition;
@@ -283,10 +321,12 @@ public class Piece : MonoBehaviour
         return Camera.main.ScreenToWorldPoint(mouseScreenPos);
     }
 
-    public void setHasMoved(bool moved){
+    public void setHasMoved(bool moved)
+    {
         hasMoved = moved;
     }
-    public bool getHasMoved(){
+    public bool getHasMoved()
+    {
         return hasMoved;
     }
 }

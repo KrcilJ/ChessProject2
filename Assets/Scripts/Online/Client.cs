@@ -27,14 +27,14 @@ public class Client : MonoBehaviour
         Debug.Log("Attempting to connect" + endPoint.Address);
         isActive = true;
 
-         registerToEvent();
+        registerToEvent();
     }
 
     public void shutdown()
     {
         if (isActive)
         {
-             unregisterToEvent();
+            unregisterToEvent();
             driver.Dispose();
             connection = default(NetworkConnection);
             isActive = false;
@@ -109,13 +109,16 @@ public class Client : MonoBehaviour
         driver.EndSend(writer);
     }
 
-    private void registerToEvent(){
+    private void registerToEvent()
+    {
         NetUtility.C_KEEP_ALIVE += onKeepAlive;
     }
-      private void unregisterToEvent(){
+    private void unregisterToEvent()
+    {
         NetUtility.C_KEEP_ALIVE -= onKeepAlive;
     }
-      private void onKeepAlive(Message msg){
+    private void onKeepAlive(Message msg)
+    {
         sendToServer(msg);
     }
 }

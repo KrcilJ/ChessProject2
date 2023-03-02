@@ -6,12 +6,12 @@ using UnityEngine;
 public class GameUI : MonoBehaviour
 {
     [SerializeField] private Animator menuAnimator;
-     [SerializeField] private TMP_InputField addressInput;
-    public static GameUI Instance {set; get;}
+    [SerializeField] private TMP_InputField addressInput;
+    public static GameUI Instance { set; get; }
 
     [SerializeField] private Server server;
     [SerializeField] private Client client;
-    
+
     public GameObject controller;
     // Start is called before the first frame update
     void Start()
@@ -22,49 +22,56 @@ public class GameUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     private void Awake()
     {
-       Instance = this; 
+        Instance = this;
     }
 
     // Button presses
-      public void gameOverMainMenuPress(){
+    public void gameOverMainMenuPress()
+    {
         menuAnimator.SetTrigger("MainMenu");
         Client.Instance.shutdown();
         Server.Instance.shutdown();
-      controller.GetComponent<Grid>().destroyAssets();
+        controller.GetComponent<Grid>().destroyAssets();
     }
-    public void localGamePress(){
+    public void localGamePress()
+    {
         menuAnimator.SetTrigger("NoMenu");
         // server.init(8007);
         // client.init(8007,"127.0.0.1" );
         controller.GetComponent<Grid>().startGame();
     }
-     public void onlineGamePress(){
+    public void onlineGamePress()
+    {
         menuAnimator.SetTrigger("HostMenu");
-       
+
     }
-      public void hostGamePress(){
+    public void hostGamePress()
+    {
         server.init(8007);
-        client.init( 8007 ,"127.0.0.1");
+        client.init(8007, "127.0.0.1");
         menuAnimator.SetTrigger("ConnectionMenu");
         //menuAnimator.SetTrigger("NoMenu");
     }
     //TODO
     //Change to the input field
-     public void connectPress(){
-        client.init( 8007 ,"127.0.0.1");
-        
+    public void connectPress()
+    {
+        client.init(8007, "127.0.0.1");
+
     }
-      public void onlineMenuBack(){
+    public void onlineMenuBack()
+    {
         menuAnimator.SetTrigger("MainMenu");
     }
-  public void connectionMenuBack(){
-    server.shutdown();
-    client.shutdown();
+    public void connectionMenuBack()
+    {
+        server.shutdown();
+        client.shutdown();
         menuAnimator.SetTrigger("HostMenu");
     }
 }
