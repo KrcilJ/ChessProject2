@@ -7,7 +7,6 @@ public class Piece : MonoBehaviour
 {
     [SerializeField] public Sprite bBishop, bRook, bPawn, bQueen, bKing, bKnight;
     [SerializeField] public Sprite wBishop, wRook, wPawn, wQueen, wKing, wKnight;
-    [SerializeField] public Sprite moveIndicator;
     [SerializeField] private Animator menuAnimator;
     [SerializeField] private TMP_Text lostText;
     public GameObject controller;
@@ -15,9 +14,7 @@ public class Piece : MonoBehaviour
     private int yCord = -1;
     private bool hasMoved = false;
     private RectTransform rectTransform;
-    private CanvasGroup canvasGroup;
     private string player = "white";
-    private string playerToplay = "white";
     private string destinationTag = "DropArea";
     private Grid grid;
     public int GetX()
@@ -43,6 +40,7 @@ public class Piece : MonoBehaviour
 
     public void SetPiece()
     {
+        //Assign the correct sprite to the pieces
         switch (this.name)
         {
             case "bQueen": this.GetComponent<SpriteRenderer>().sprite = bQueen; player = "black"; break;
@@ -64,51 +62,14 @@ public class Piece : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        //get object references
         rectTransform = GetComponent<RectTransform>();
-        canvasGroup = GetComponent<CanvasGroup>();
         controller = GameObject.FindGameObjectWithTag("GameController");
         grid = controller.GetComponent<Grid>();
     }
 
-
-    //     public void OnBeginDrag(PointerEventData eventData) {
-    //         Debug.Log("OnBeginDrag");
-    //          canvasGroup.blocksRaycasts = false;
-    //     }
-
-
-    //     public void OnEndDrag(PointerEventData eventData) {
-    //         Debug.Log("OnEndDrag");
-    //          canvasGroup.blocksRaycasts = true;
-    //     }
-
-    //     public void OnPointerDown(PointerEventData eventData) {
-    //         Debug.Log("OnPointerDown");
-    //     }
-    //     public void OnDrag(PointerEventData eventData){         
-    //         rectTransform.position = GetMousePos();       
-    //    }
-    //    void OnMouseUp()
-    //     {
-    //         Debug.Log("mouse ip");
-    //         var rayOrigin = Camera.main.transform.position;
-    //         var rayDirection = GetMousePos() - Camera.main.transform.position;
-    //         RaycastHit hitInfo;
-    //         if(Physics.Raycast(rayOrigin, rayDirection, out hitInfo))
-    //         {
-    //             if(hitInfo.transform.tag == destinationTag)
-    //             {
-    //                 rectTransform.position = hitInfo.transform.position;
-    //             }
-    //         }
-    //         rectTransform.GetComponent<Collider2D>().enabled = true;
-    //     }
-    //    private Vector3 GetMousePos(){
-    //     var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-    //     mousePos.z = 0;
-    //     return mousePos;
-    //    }
     Vector3 offset;
+    //Show the according screen when a player looses
     public void gameOver(string player, int iWon)
     {
         if (iWon == 0)
@@ -126,6 +87,7 @@ public class Piece : MonoBehaviour
         player = GetPlayer();
         string playerToPlay = grid.getPlayerToPlay();
         int pTP;
+        //Logic to not allow online players to move the other pieces when it is not their turn
         if (playerToPlay == "white")
         {
             pTP = 0;
@@ -146,22 +108,26 @@ public class Piece : MonoBehaviour
                 return;
             }
         }
+        //Clean up
         grid.DestroyIndicators();
         grid.clearMoves();
+        //Set the offset from the piece to the mouse (this prevents snapping of the piece onto the mouse)
         offset = rectTransform.position - MouseWorldPosition();
+        //Check if the player who wants to play is mated
         if (grid.checkmate(playerToPlay))
         {
             gameOver(playerToPlay, 0);
             return;
         }
+        //Disable the collider of the piece we are dragging, otherwise we would always hit the piece with the raycast and not the object bellow it
         rectTransform.GetComponent<Collider2D>().enabled = false;
         grid.clearMoves();
 
+        
         if (this != null)
         {
-            Debug.Log("Actual moves");
+            //Generate the legal moves for the specific piece
             grid.GenerateIndicators(this);
-
             grid.legalMoves(this);
             grid.makeIndicators();
         }
@@ -182,6 +148,7 @@ public class Piece : MonoBehaviour
 
     void OnMouseDrag()
     {
+        //Change the position of the piece to the mouse position
         rectTransform.position = MouseWorldPosition() + offset;
     }
 
@@ -190,14 +157,18 @@ public class Piece : MonoBehaviour
 
         var rayOrigin = Camera.main.transform.position;
         var rayDirection = MouseWorldPosition() - Camera.main.transform.position;
-
+        
+        //Cast a ray from the camera to the mouse to see where a piece is moving
         RaycastHit2D hitInfo;
         hitInfo = Physics2D.Raycast(MouseWorldPosition(), Vector2.zero);
+        //Find the move indicators (legal moves)
         GameObject[] indicators = GameObject.FindGameObjectsWithTag("MoveIndicator");
         bool legalMove = false;
         bool takePiece = false;
+        //Check if the move was made on top of the board
         if (hitInfo)
         {
+            //Check if we are moving on an empty tile
             if (hitInfo.transform.tag == destinationTag)
             {
                 for (int i = 0; i < indicators.Length; i++)
@@ -209,6 +180,7 @@ public class Piece : MonoBehaviour
                     }
                 }
             }
+            //Otherwise we are taking a piece
             else
             {
                 for (int i = 0; i < indicators.Length; i++)
@@ -223,9 +195,9 @@ public class Piece : MonoBehaviour
 
             if (legalMove)
             {
-                //Debug.Log("move");
+                //if the movec was legal change the position of the piece to the position of the square it is moving to
                 rectTransform.position = hitInfo.transform.position;
-                //Debug.Log(grid.getCastleShort());
+                //Check if the move was a castling move and move the corresponding rook if the was a castling move
                 if (grid.getCastleLong() && (int)rectTransform.position.x == this.GetX() - 2)
                 {
                     Piece rook = grid.getPosition(this.GetX() - 4, this.GetY()).GetComponent<Piece>();
@@ -240,8 +212,10 @@ public class Piece : MonoBehaviour
                     grid.SetPosition(rook, (int)rectTransform.position.x - 1, (int)rectTransform.position.y);
                     grid.setCastleShort(false);
                 }
+
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
-                if (grid.getenPassantWhite() && grid.getPosition(this.GetX(), this.GetY() - 1).gameObject != null)
+                //Check if the move en passant, if it was destroy the pawn behind the en passant move
+                if (grid.getenPassantWhite() && grid.getPosition(this.GetX(), this.GetY() - 1) != null)
                 {
                     Destroy(grid.getPosition(this.GetX(), this.GetY() - 1).gameObject);
                     if (!grid.getOnlineGame())
@@ -250,7 +224,7 @@ public class Piece : MonoBehaviour
                     }
 
                 }
-                if (grid.getenPassantBlack() && grid.getPosition(this.GetX(), this.GetY() + 1).gameObject != null)
+                if (grid.getenPassantBlack() && grid.getPosition(this.GetX(), this.GetY() + 1) != null)
                 {
                     Destroy(grid.getPosition(this.GetX(), this.GetY() + 1).gameObject);
                     if (!grid.getOnlineGame())
@@ -259,6 +233,7 @@ public class Piece : MonoBehaviour
                     }
                 }
                 setHasMoved(true);
+                //Clean up
                 grid.clearMoves();
                 grid.DestroyIndicators();
                 if (player == "white")
@@ -271,11 +246,13 @@ public class Piece : MonoBehaviour
                 }
             }
 
-
+            //Logic for when we are taking a piece
             if (takePiece && grid.getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer())
             {
                 //Debug.Log("take");
+                //move the piece to the square
                 rectTransform.position = hitInfo.transform.position;
+                //Destroy the piece that was on the square
                 Destroy(hitInfo.transform.gameObject);
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
                 setHasMoved(true);
@@ -290,27 +267,30 @@ public class Piece : MonoBehaviour
                     grid.setPlayerToPlay("white");
                 }
             }
+            //Otherwise return the piece to its original position
             else
             {
                 rectTransform.position = new Vector3(GetX(), GetY(), -1);
             }
+            //Handle queen promotion
             if (this.name == "wPawn" && GetY() == 7)
             {
-                //Debug.Log("White queen promotion");
+
                 this.name = "wQueen";
                 SetPiece();
             }
             else if (this.name == "bPawn" && GetY() == 0)
             {
-                //Debug.Log("Black queen promotion");
                 this.name = "bQueen";
                 SetPiece();
             }
         }
+        //Otherwise return the piece to its original position
         else
         {
             rectTransform.position = new Vector3(GetX(), GetY(), -1);
         }
+        //Re-enable the disabled collider
         rectTransform.GetComponent<Collider2D>().enabled = true;
     }
 
