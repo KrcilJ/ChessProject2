@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using TMPro;
 public class Piece : MonoBehaviour
 {
@@ -57,9 +54,7 @@ public class Piece : MonoBehaviour
             case "wPawn": this.GetComponent<SpriteRenderer>().sprite = wPawn; player = "white"; break;
         }
     }
-    /// <summary>
-    /// Awake is called when the script instance is being loaded.
-    /// </summary>
+    // Awake is called when the script instance is being loaded.
     private void Awake()
     {
         //get object references
@@ -130,20 +125,7 @@ public class Piece : MonoBehaviour
             grid.GenerateIndicators(this);
             grid.legalMoves(this);
             grid.makeIndicators();
-        }
-        // for (int i = 0; i < 8; i++)
-        // {
-        //     for (int k = 0; k < 8; k++)
-        // {
-        //    Piece a = grid.getPosition(i,k);
-        //    if (a != null && a.GetPlayer() == grid.getPlayerToPlay())
-        //    {
-        //     grid.GenerateIndicators(a);
-        //    }
-        // } 
-        // }
-        //grid.makeIndicators();      
-
+        }   
     }
 
     void OnMouseDrag()
@@ -249,7 +231,6 @@ public class Piece : MonoBehaviour
             //Logic for when we are taking a piece
             if (takePiece && grid.getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer())
             {
-                //Debug.Log("take");
                 //move the piece to the square
                 rectTransform.position = hitInfo.transform.position;
                 //Destroy the piece that was on the square
@@ -273,7 +254,7 @@ public class Piece : MonoBehaviour
                 rectTransform.position = new Vector3(GetX(), GetY(), -1);
             }
             //Handle queen promotion
-            if (this.name == "wPawn" && GetY() == 7)
+            if (this.name == "wPawn" && GetY() == grid.getHeight() - 1)
             {
 
                 this.name = "wQueen";

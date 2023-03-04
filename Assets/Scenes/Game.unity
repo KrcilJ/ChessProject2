@@ -2451,7 +2451,6 @@ MonoBehaviour:
   wQueen: {fileID: 21300000, guid: 6e6757557277f4b42919861f5b64c4bc, type: 3}
   wKing: {fileID: 21300000, guid: a80baa2f1a145d34db39eadf50efb9f9, type: 3}
   wKnight: {fileID: 21300000, guid: c6b5d11c02b3ff244b6ec29d783f7a1a, type: 3}
-  moveIndicator: {fileID: 21300000, guid: 45e18ecdc00b60c4ebb3dcd45015319b, type: 3}
   menuAnimator: {fileID: 297812764}
   lostText: {fileID: 1699588930}
   controller: {fileID: 0}

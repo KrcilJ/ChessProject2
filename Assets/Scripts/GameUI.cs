@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -8,7 +6,6 @@ public class GameUI : MonoBehaviour
     [SerializeField] private Animator menuAnimator;
     [SerializeField] private TMP_InputField addressInput;
     public static GameUI Instance { set; get; }
-
     [SerializeField] private Server server;
     [SerializeField] private Client client;
 
@@ -17,12 +14,6 @@ public class GameUI : MonoBehaviour
     void Start()
     {
         controller = GameObject.FindGameObjectWithTag("GameController");
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
     private void Awake()
