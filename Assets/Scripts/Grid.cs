@@ -1,4 +1,3 @@
-using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +11,11 @@ public class Grid : MonoBehaviour
     private int numPlayers = -1;
 
     private const int NUM_PIECES = 8;
+    //where on the board should be pieces be placed
+    private const int FIRST_PIECE_BX = 0;
+    private int FIRST_PIECE_BY = 7;
+    private const int FIRST_PIECE_WX = 0;
+    private const int FIRST_PIECE_WY = 1;
     [SerializeField] private int width, height;
 
     [SerializeField] private Animator menuAnimator;
@@ -39,6 +43,7 @@ public class Grid : MonoBehaviour
     private bool enPassantWhite = false;
     private bool enPassantBlack = false;
 
+    //Structure to save information about a move
     public struct Move
     {
         public Vector2 originalPos;
@@ -50,12 +55,12 @@ public class Grid : MonoBehaviour
     private bool startAsBlack = false;
     private bool startAsWhite = false;
     private bool onlineGame = false;
-    void Start() { }
 
     void Awake()
     {
         registerEvents();
         positions = new Piece[width, height];
+        FIRST_PIECE_BY = height - 1;
     }
 
     public void startGame()
@@ -65,41 +70,41 @@ public class Grid : MonoBehaviour
         GenerateGrid();
         playerWhite = new Piece[]
         {
-            CreatePiece("wRook", width - 8, 0),
-            CreatePiece("wKnight", width - 7, 0),
-            CreatePiece("wBishop", width - 6, 0),
-            CreatePiece("wQueen", width - 5, 0),
-            CreatePiece("wKing", width - 4, 0),
-            CreatePiece("wBishop", width - 3, 0),
-            CreatePiece("wKnight",width - 2, 0),
-            CreatePiece("wRook", width - 1, 0),
-            CreatePiece("wPawn", width - 8, 1),
-            CreatePiece("wPawn", width - 7, 1),
-            CreatePiece("wPawn", width - 6, 1),
-            CreatePiece("wPawn", width - 5, 1),
-            CreatePiece("wPawn", width - 4, 1),
-            CreatePiece("wPawn", width - 3, 1),
-            CreatePiece("wPawn", width - 2, 1),
-            CreatePiece("wPawn", width - 1, 1)
+            CreatePiece("wRook", FIRST_PIECE_WX, FIRST_PIECE_WY),
+            CreatePiece("wKnight", FIRST_PIECE_WX + 1, FIRST_PIECE_WY),
+            CreatePiece("wBishop", FIRST_PIECE_WX + 2, FIRST_PIECE_WY),
+            CreatePiece("wQueen", FIRST_PIECE_WX + 3, FIRST_PIECE_WY),
+            CreatePiece("wKing", FIRST_PIECE_WX + 4, FIRST_PIECE_WY),
+            CreatePiece("wBishop",FIRST_PIECE_WX + 5, FIRST_PIECE_WY),
+            CreatePiece("wKnight",FIRST_PIECE_WX + 6, FIRST_PIECE_WY),
+            CreatePiece("wRook", FIRST_PIECE_WX + 7, FIRST_PIECE_WY),
+            CreatePiece("wPawn", FIRST_PIECE_WX, FIRST_PIECE_WY + 1),
+            CreatePiece("wPawn", FIRST_PIECE_WX + 1, FIRST_PIECE_WY + 1),
+            CreatePiece("wPawn", FIRST_PIECE_WX + 2, FIRST_PIECE_WY + 1),
+            CreatePiece("wPawn", FIRST_PIECE_WX + 3, FIRST_PIECE_WY + 1),
+            CreatePiece("wPawn", FIRST_PIECE_WX + 4, FIRST_PIECE_WY + 1),
+            CreatePiece("wPawn", FIRST_PIECE_WX + 5, FIRST_PIECE_WY + 1),
+            CreatePiece("wPawn", FIRST_PIECE_WX + 6, FIRST_PIECE_WY + 1),
+            CreatePiece("wPawn", FIRST_PIECE_WX + 7, FIRST_PIECE_WY + 1)
         };
         playerBlack = new Piece[]
         {
-            CreatePiece("bRook", width - 8, height - 1),
-            CreatePiece("bKnight", width - 7, height - 1),
-            CreatePiece("bBishop", width - 6, height - 1),
-            CreatePiece("bQueen", width - 5, height - 1),
-            CreatePiece("bKing", width - 4, height - 1),
-            CreatePiece("bBishop", width - 3, height - 1),
-            CreatePiece("bKnight", width - 2, height - 1),
-            CreatePiece("bRook", width - 1, height - 1),
-            CreatePiece("bPawn", width - 8, height - 2),
-            CreatePiece("bPawn", width - 7, height - 2),
-            CreatePiece("bPawn", width - 6, height - 2),
-            CreatePiece("bPawn", width - 5, height - 2),
-            CreatePiece("bPawn", width - 4, height - 2),
-            CreatePiece("bPawn", width - 3, height - 2),
-            CreatePiece("bPawn", width - 2, height - 2),
-            CreatePiece("bPawn", width - 1, height - 2)
+            CreatePiece("bRook", FIRST_PIECE_BX, FIRST_PIECE_BY),
+            CreatePiece("bKnight", FIRST_PIECE_BX + 1, FIRST_PIECE_BY),
+            CreatePiece("bBishop", FIRST_PIECE_BX + 2, FIRST_PIECE_BY),
+            CreatePiece("bQueen", FIRST_PIECE_BX + 3, FIRST_PIECE_BY),
+            CreatePiece("bKing", FIRST_PIECE_BX + 4, FIRST_PIECE_BY),
+            CreatePiece("bBishop", FIRST_PIECE_BX + 5, FIRST_PIECE_BY),
+            CreatePiece("bKnight", FIRST_PIECE_BX + 6, FIRST_PIECE_BY),
+            CreatePiece("bRook", FIRST_PIECE_BX + 7, FIRST_PIECE_BY),
+            CreatePiece("bPawn", FIRST_PIECE_BX, FIRST_PIECE_BY - 1),
+            CreatePiece("bPawn", FIRST_PIECE_BX + 1, FIRST_PIECE_BY - 1),
+            CreatePiece("bPawn", FIRST_PIECE_BX + 2, FIRST_PIECE_BY - 1),
+            CreatePiece("bPawn", FIRST_PIECE_BX + 3, FIRST_PIECE_BY - 1),
+            CreatePiece("bPawn", FIRST_PIECE_BX + 4, FIRST_PIECE_BY - 1),
+            CreatePiece("bPawn", FIRST_PIECE_BX + 5, FIRST_PIECE_BY - 1),
+            CreatePiece("bPawn", FIRST_PIECE_BX + 6, FIRST_PIECE_BY - 1),
+            CreatePiece("bPawn", FIRST_PIECE_BX + 7, FIRST_PIECE_BY - 1)
         };
 
         for (int i = 0; i < 2 * NUM_PIECES; i++)
@@ -120,7 +125,7 @@ public class Grid : MonoBehaviour
 
     void GenerateGrid()
     {
-        Instantiate(forestTileLight, new Vector3(0, 0), Quaternion.Euler(0f, 0f, 90f * 0));
+        //Generate the grid squares
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -140,6 +145,7 @@ public class Grid : MonoBehaviour
                 {
                     Instantiate(forestTileDark, new Vector3(x, y), Quaternion.Euler(0f, 0f, 90f * randomNumber));
                 }
+                //Assign the correct colors the the squres
                 spawnedTile.isLight(isLigt);
             }
         }
@@ -147,6 +153,7 @@ public class Grid : MonoBehaviour
         cam.transform.position = new Vector3(width / 2f - 0.5f, height / 2f - 0.5f, -10); //Move the camera to the middle of the screen
     }
 
+    //Set the position of the piece so the program knows where a piece has moved
     public void SetPosition(Piece piece, int x, int y)
     {
         //Set values of the move played as the last move
@@ -205,6 +212,7 @@ public class Grid : MonoBehaviour
         return obj;
     }
 
+    //Function to generate possible moves of a piece
     public void GenerateIndicators(Piece piece)
     {
         selectedPiece = piece;
@@ -278,29 +286,32 @@ public class Grid : MonoBehaviour
         }
     }
 
+    //Create moves in a straight line
     private void createLineIndicator(int xStep, int yStep, Piece piece)
     {
         int x = piece.GetX() + xStep;
         int y = piece.GetY() + yStep;
+        //Create moves on empty squares
         while (onBoard(x, y) && positions[x, y] == null)
         {
             moves.Add(new Vector3(x, y, -1));
-            //Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
             x += xStep;
             y += yStep;
         }
+        //Create a move if there is an enemy piece at the end of the straight line
         if (onBoard(x, y) && piece.GetPlayer() != positions[x, y].GetPlayer())
         {
             moves.Add(new Vector3(x, y, -1));
-            // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
         }
     }
+
 
     private void createPawnIndicator(int x, int yStep, Piece piece)
     {
         int y = piece.GetY() + yStep;
         bool isOnBoard = onBoard(x, y);
         bool isEmpty = positions[x, y] == null;
+        //Pawn can move two squares as its first move
         if (isOnBoard && isEmpty && piece.GetPlayer() == "white" && piece.getHasMoved() == false)
         {
             if (positions[x, y] == null)
@@ -311,9 +322,6 @@ public class Grid : MonoBehaviour
             {
                 moves.Add(new Vector3(x, y + 1, -1));
             }
-
-            // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
-            //Instantiate(moveIndicator, new Vector3(x, y + 1, -1), Quaternion.identity);
         }
         else if (isOnBoard && isEmpty && piece.GetPlayer() == "black" && piece.getHasMoved() == false)
         {
@@ -325,32 +333,22 @@ public class Grid : MonoBehaviour
             {
                 moves.Add(new Vector3(x, y - 1, -1));
             }
-
-            // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
-            // Instantiate(moveIndicator, new Vector3(x, y - 1, -1), Quaternion.identity);
         }
+        //Otherwise just move one square forward
         else if (isOnBoard && isEmpty)
         {
             moves.Add(new Vector3(x, y, -1));
-            // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
+
         }
-        if (
-            onBoard(x + 1, y)
-            && positions[x + 1, y] != null
-            && piece.GetPlayer() != positions[x + 1, y].GetPlayer()
-        )
+        //Check if we can take a piece and create a move if we can
+        if (onBoard(x + 1, y) && positions[x + 1, y] != null && piece.GetPlayer() != positions[x + 1, y].GetPlayer())
         {
             moves.Add(new Vector3(x + 1, y, -1));
-            // Instantiate(moveIndicator, new Vector3(x + 1, y, -1), Quaternion.identity);
+
         }
-        if (
-            onBoard(x - 1, y)
-            && positions[x - 1, y] != null
-            && piece.GetPlayer() != positions[x - 1, y].GetPlayer()
-        )
+        if (onBoard(x - 1, y) && positions[x - 1, y] != null && piece.GetPlayer() != positions[x - 1, y].GetPlayer())
         {
             moves.Add(new Vector3(x - 1, y, -1));
-            // Instantiate(moveIndicator, new Vector3(x - 1, y, -1), Quaternion.identity);
         }
         float movementY = Math.Abs(lastmove.currentPos.y - lastmove.originalPos.y);
         float xDiff = piece.GetX() - lastmove.currentPos.x;
@@ -411,7 +409,6 @@ public class Grid : MonoBehaviour
         {
             if (isEmpty || pieceAtPos.GetPlayer() != piece.GetPlayer())
             {
-                // Instantiate(moveIndicator, new Vector3(x, y, -1), Quaternion.identity);
                 moves.Add(new Vector3(x, y, -1));
             }
         }
@@ -441,12 +438,6 @@ public class Grid : MonoBehaviour
             Instantiate(moveIndicator, moves[i], Quaternion.identity);
         }
     }
-
-    public void clearMoves()
-    {
-        moves.Clear();
-    }
-
     //Find the king of the specified player
     public Vector3 findKing(string player)
     {
@@ -493,9 +484,11 @@ public class Grid : MonoBehaviour
     public void legalMoves(Piece piece)
     {
         string playerToPlay = getPlayerToPlay();
+
         List<Vector3> legalMoves = new List<Vector3>();
         List<Vector3> myMoves = new List<Vector3>(moves); //save the current pieces possible moves
         Piece pieceToTake = null;
+
         clearMoves();
         //Generate all possible moves for the enemy pieces - these will be now saved in the moves array
         for (int i = 0; i < width; i++)
@@ -555,7 +548,6 @@ public class Grid : MonoBehaviour
             //If a piece has been overwritten by the move set the piece back
             if (pieceToTake != null)
             {
-                // SetPosition(pieceToTake, (int)myMoves[j].x, (int)myMoves[j].y);
                 positions[(int)myMoves[j].x, (int)myMoves[j].y] = pieceToTake;
                 pieceToTake = null;
             }
@@ -663,20 +655,6 @@ public class Grid : MonoBehaviour
         }
         return true;
     }
-    public Piece getPosition(int x, int y)
-    {
-        return positions[x, y];
-    }
-
-    public string getPlayerToPlay()
-    {
-        return playerToplay;
-    }
-
-    public void setPlayerToPlay(string player)
-    {
-        playerToplay = player;
-    }
 
     //Check if its possible to castle (without checking if the king is in check)
     private void canCastle(Piece king)
@@ -688,8 +666,7 @@ public class Grid : MonoBehaviour
             Piece initialRookPos = positions[kingX - 4, kingY];
 
             if (initialRookPos != null && (positions[kingX - 1, kingY] == null && positions[kingX - 2, kingY] == null
-            && positions[kingX - 3, kingY] == null && initialRookPos.getHasMoved() == false && (initialRookPos.name == "wRook" ||
-            initialRookPos.name == "bRook")))
+            && positions[kingX - 3, kingY] == null && initialRookPos.getHasMoved() == false && (initialRookPos.name == "wRook" || initialRookPos.name == "bRook")))
             {
                 for (int i = 0; i < moves.Count; i++)
                 {
@@ -706,17 +683,8 @@ public class Grid : MonoBehaviour
             {
                 castleLong = false;
             }
-            if (positions[kingX + 3, kingY] != null
-                && (
-                    positions[kingX + 1, kingY] == null
-                    && positions[kingX + 2, kingY] == null
-                    && positions[kingX + 3, kingY].getHasMoved() == false
-                    && (
-                        positions[kingX + 3, kingY].name == "wRook"
-                        || positions[kingX + 3, kingY].name == "bRook"
-                    )
-                )
-            )
+            if (positions[kingX + 3, kingY] != null && (positions[kingX + 1, kingY] == null && positions[kingX + 2, kingY] == null && positions[kingX + 3, kingY].getHasMoved() == false
+                && (positions[kingX + 3, kingY].name == "wRook" || positions[kingX + 3, kingY].name == "bRook")))
             {
                 for (int i = 0; i < moves.Count; i++)
                 {
@@ -739,6 +707,29 @@ public class Grid : MonoBehaviour
         }
     }
 
+    public void clearMoves()
+    {
+        moves.Clear();
+    }
+    public Piece getPosition(int x, int y)
+    {
+        return positions[x, y];
+    }
+
+    public string getPlayerToPlay()
+    {
+        return playerToplay;
+    }
+
+    public void setPlayerToPlay(string player)
+    {
+        playerToplay = player;
+    }
+
+    public int getHeight()
+    {
+        return height;
+    }
     public bool getCastleShort()
     {
         return castleShort;
@@ -779,8 +770,18 @@ public class Grid : MonoBehaviour
         enPassantWhite = value;
     }
 
+    public int getPlayerTeam()
+    {
+        return currentPlayer;
+    }
+    public bool getOnlineGame()
+    {
+        return onlineGame;
+    }
+    //Register for online messages
     private void registerEvents()
     {
+        //These functions get called when the corresponding message is received
         NetUtility.S_WELCOME += onWelcomeServer;
         NetUtility.C_WELCOME += onWelcomeClient;
         NetUtility.C_START_GAME += onStartGameClient;
@@ -796,7 +797,7 @@ public class Grid : MonoBehaviour
         WelcomeMsg welcome = msg as WelcomeMsg;
         welcome.player = ++numPlayers;
         Server.Instance.sendToClient(connection, welcome);
-
+        //Broadcast the start game message if both players are connected
         if (numPlayers == 1)
         {
             Server.Instance.broadcast(new StartGameMsg());
@@ -804,6 +805,7 @@ public class Grid : MonoBehaviour
     }
     private void onMakeMoveServer(Message msg, NetworkConnection connection)
     {
+        //Broadcast the message to the client
         Server.Instance.broadcast(msg);
     }
     private void onWelcomeClient(Message msg)
@@ -811,12 +813,11 @@ public class Grid : MonoBehaviour
         onlineGame = true;
         WelcomeMsg welcome = msg as WelcomeMsg;
         currentPlayer = welcome.player;
-        Debug.Log($"My assigned team is {welcome.player}");
-        // Client.Instance.sendToServer(welcome);
     }
 
     private void onStartGameClient(Message msg)
     {
+        //Check whih player we are
         if (currentPlayer == 1)
         {
             startAsBlack = true;
@@ -826,7 +827,6 @@ public class Grid : MonoBehaviour
     private void onMakeMoveClient(Message msg)
     {
         MakeMoveMsg move = msg as MakeMoveMsg;
-        //Debug.Log($"{move.team}, {move.originalX}, {move.originalY} --> {move.goalX}, {move.goalY} ");
         if (move.team != currentPlayer)
         {
             Piece piece = positions[move.originalX, move.originalY];
@@ -835,6 +835,7 @@ public class Grid : MonoBehaviour
             {
                 return;
             }
+            //Check if a piece should be taken
             Piece pieceToTake = positions[move.goalX, move.goalY];
             if (pieceToTake != null)
             {
@@ -859,7 +860,6 @@ public class Grid : MonoBehaviour
                 }
             }
             //Handle queen promotion
-
             if (piece.name == "wPawn" && move.goalY == height - 1)
             {
                 piece.name = "wQueen";
@@ -870,8 +870,10 @@ public class Grid : MonoBehaviour
                 piece.name = "bQueen";
                 piece.SetPiece();
             }
+            //Move the piece to the position
             piece.transform.position = new Vector3(move.goalX, move.goalY, -1);
             SetPosition(piece, move.goalX, move.goalY);
+
             if (move.team == 0)
             {
                 setPlayerToPlay("black");
@@ -884,15 +886,14 @@ public class Grid : MonoBehaviour
     }
     private void onGameOverServer(Message msg, NetworkConnection connection)
     {
-
         Server.Instance.broadcast(msg);
     }
     private void onGameOverClient(Message msg)
     {
+        //Call the correct game over function based on who won and lost
         GameOverMsg gameOverMsg = msg as GameOverMsg;
         if (gameOverMsg.team == 0 && currentPlayer == gameOverMsg.team)
         {
-
             GeneralPiece.gameOver("white", 1);
         }
         else if (gameOverMsg.team == 1 && currentPlayer == gameOverMsg.team)
@@ -919,14 +920,7 @@ public class Grid : MonoBehaviour
         NetUtility.C_GAME_OVER -= onGameOverClient;
     }
 
-    public int getPlayerTeam()
-    {
-        return currentPlayer;
-    }
-    public bool getOnlineGame()
-    {
-        return onlineGame;
-    }
+
 
     public void destroyAssets()
     {

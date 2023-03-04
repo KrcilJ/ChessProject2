@@ -5,11 +5,14 @@ using UnityEngine;
 public static class NetUtility
 
 {
+    //Handles the different kinds of messages
     public static void onData(DataStreamReader reader, NetworkConnection connection, Server server = null)
     {
         Message msg = null;
+        //The first byte of the message if the code which determine which kind of message it is
         var operationCode = (OperationCode)reader.ReadByte();
 
+        //Create a new message according to its type
         switch (operationCode)
         {
             case OperationCode.KEEP_ALIVE: msg = new KeepAliveMsg(reader); break;
@@ -32,7 +35,7 @@ public static class NetUtility
         }
 
     }
-    //Messages
+    //Messages (will be used to identify messages)
     public static Action<Message> C_KEEP_ALIVE;
 
     public static Action<Message> C_WELCOME;
