@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Server : MonoBehaviour
 {
+    
     //Creates a static instance of the server
     public static Server Instance { set; get; }
 
@@ -130,13 +131,17 @@ public class Server : MonoBehaviour
     }
 
     //Server logic
+    //Used for sending a message to a specific client
     public void sendToClient(NetworkConnection connection, Message msg)
     {
         DataStreamWriter writer;
+        //Start a connection with a specific connection
         driver.BeginSend(connection, out writer);
         msg.serialize(ref writer);
         driver.EndSend(writer);
     }
+
+    //Sends the message to all clients
     public void broadcast(Message msg)
     {
         for (int i = 0; i < connections.Length; i++)
@@ -147,7 +152,7 @@ public class Server : MonoBehaviour
             }
         }
     }
-    //Messages back on forth to keep the server and client running
+    //Send message to client to keep the connection running
     public void keepAlive()
     {
         if (Time.time - lastKeepAlive > keepAliveRate)

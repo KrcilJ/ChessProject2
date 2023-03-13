@@ -1,14 +1,13 @@
 
 using Unity.Networking.Transport;
-using UnityEngine;
 
 public class WelcomeMsg : Message
 {
     public int player {set; get;}
-    public WelcomeMsg(){
+    public WelcomeMsg(){ //Creating a message
         code = OperationCode.WELCOME;
     }
-     public WelcomeMsg(DataStreamReader reader){
+     public WelcomeMsg(DataStreamReader reader){ //Receiving a message
         code = OperationCode.WELCOME;
         deserialize(reader);
     }

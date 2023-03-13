@@ -2,12 +2,12 @@ using Unity.Networking.Transport;
 
 public class KeepAliveMsg : Message
 {
-    public KeepAliveMsg()
+    public KeepAliveMsg() //Creating a message
     {
         code = OperationCode.KEEP_ALIVE;
     }
 
-    public KeepAliveMsg(DataStreamReader reader)
+    public KeepAliveMsg(DataStreamReader reader) // Receiving a message
     {
         code = OperationCode.KEEP_ALIVE;
         deserialize(reader);

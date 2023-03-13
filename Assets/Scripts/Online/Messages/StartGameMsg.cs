@@ -5,11 +5,11 @@ using UnityEngine;
 public class StartGameMsg : Message
 {
     public int player { set; get; }
-    public StartGameMsg()
+    public StartGameMsg() //Creating a message
     {
         code = OperationCode.START_GAME;
     }
-    public StartGameMsg(DataStreamReader reader)
+    public StartGameMsg(DataStreamReader reader) //Receiving a message
     {
         code = OperationCode.START_GAME;
         deserialize(reader);

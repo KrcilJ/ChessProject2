@@ -13,6 +13,7 @@ public class Client : MonoBehaviour
     }
 
     public NetworkDriver driver;
+    //Connection to the server
     private NetworkConnection connection;
 
     private bool isActive = false;
@@ -21,8 +22,8 @@ public class Client : MonoBehaviour
     public void init(ushort port, string ip)
     {
         driver = NetworkDriver.Create();
+        //Connect to a specific ip and port
         NetworkEndPoint endPoint = NetworkEndPoint.Parse(ip, port);
-
         connection = driver.Connect(endPoint);
         Debug.Log("Attempting to connect" + endPoint.Address);
         isActive = true;
@@ -55,8 +56,7 @@ public class Client : MonoBehaviour
         {
             return;
         }
-
-        //keepAlive();
+        //As the driver is part of the job sheduler we ensure that has completed
         driver.ScheduleUpdate().Complete();
         checkAlive();
 
@@ -65,9 +65,11 @@ public class Client : MonoBehaviour
 
     private void checkAlive()
     {
+        //If a connection was not created but the client is active
         if (!connection.IsCreated && isActive)
         {
             Debug.Log("Lost connection to the server");
+            //Invoke the connectionDropped action
             connectionDropped?.Invoke();
             shutdown();
         }
@@ -77,21 +79,20 @@ public class Client : MonoBehaviour
     {
         DataStreamReader inStream;
 
-        NetworkEvent.Type message;
-        while ((message = connection.PopEvent(driver, out inStream)) != NetworkEvent.Type.Empty)
+        NetworkEvent.Type messageType;
+        //Pool a single connection
+        while ((messageType = connection.PopEvent(driver, out inStream)) != NetworkEvent.Type.Empty)
         {
-            if (message == NetworkEvent.Type.Connect)
+            if (messageType == NetworkEvent.Type.Connect)
             {
-                //Handle the message
                 sendToServer(new WelcomeMsg());
                 Debug.Log("We are connected");
             }
-            else if (message == NetworkEvent.Type.Data)
+            else if (messageType == NetworkEvent.Type.Data)
             {
-                //Handle the message
                 NetUtility.onData(inStream, default(NetworkConnection));
             }
-            else if (message == NetworkEvent.Type.Disconnect)
+            else if (messageType == NetworkEvent.Type.Disconnect)
             {
                 Debug.Log("Client got disconnected from the server");
                 connection = default(NetworkConnection);
@@ -111,12 +112,14 @@ public class Client : MonoBehaviour
 
     private void registerToEvent()
     {
+        //When we receive a keep alive message, call the onKeepAlive
         NetUtility.C_KEEP_ALIVE += onKeepAlive;
     }
     private void unregisterToEvent()
     {
         NetUtility.C_KEEP_ALIVE -= onKeepAlive;
     }
+    //Send the message back to the server
     private void onKeepAlive(Message msg)
     {
         sendToServer(msg);
