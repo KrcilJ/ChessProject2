@@ -38,20 +38,21 @@ public class Piece : MonoBehaviour
     public void SetPiece()
     {
         //Assign the correct sprite to the pieces
+        SpriteRenderer renderer = this.GetComponent<SpriteRenderer>();
         switch (this.name)
         {
-            case "bQueen": this.GetComponent<SpriteRenderer>().sprite = bQueen; player = "black"; break;
-            case "bKnight": this.GetComponent<SpriteRenderer>().sprite = bKnight; player = "black"; break;
-            case "bBishop": this.GetComponent<SpriteRenderer>().sprite = bBishop; player = "black"; break;
-            case "bKing": this.GetComponent<SpriteRenderer>().sprite = bKing; player = "black"; break;
-            case "bRook": this.GetComponent<SpriteRenderer>().sprite = bRook; player = "black"; break;
-            case "bPawn": this.GetComponent<SpriteRenderer>().sprite = bPawn; player = "black"; break;
-            case "wQueen": this.GetComponent<SpriteRenderer>().sprite = wQueen; player = "white"; break;
-            case "wKnight": this.GetComponent<SpriteRenderer>().sprite = wKnight; player = "white"; break;
-            case "wBishop": this.GetComponent<SpriteRenderer>().sprite = wBishop; player = "white"; break;
-            case "wKing": this.GetComponent<SpriteRenderer>().sprite = wKing; player = "white"; break;
-            case "wRook": this.GetComponent<SpriteRenderer>().sprite = wRook; player = "white"; break;
-            case "wPawn": this.GetComponent<SpriteRenderer>().sprite = wPawn; player = "white"; break;
+            case "bQueen": renderer.sprite = bQueen; player = "black"; break;
+            case "bKnight": renderer.sprite = bKnight; player = "black"; break;
+            case "bBishop": renderer.sprite = bBishop; player = "black"; break;
+            case "bKing": renderer.sprite = bKing; player = "black"; break;
+            case "bRook": renderer.sprite = bRook; player = "black"; break;
+            case "bPawn": renderer.sprite = bPawn; player = "black"; break;
+            case "wQueen": renderer.sprite = wQueen; player = "white"; break;
+            case "wKnight": renderer.sprite = wKnight; player = "white"; break;
+            case "wBishop": renderer.sprite = wBishop; player = "white"; break;
+            case "wKing": renderer.sprite = wKing; player = "white"; break;
+            case "wRook": renderer.sprite = wRook; player = "white"; break;
+            case "wPawn": renderer.sprite = wPawn; player = "white"; break;
         }
     }
     // Awake is called when the script instance is being loaded.

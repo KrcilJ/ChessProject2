@@ -7,10 +7,10 @@ public class GameOverMsg : Message
  
     public int team;
     public int player {set; get;}
-    public GameOverMsg(){
+    public GameOverMsg(){ // Creating a message
         code = OperationCode.GAME_OVER;
     }
-     public GameOverMsg(DataStreamReader reader){
+     public GameOverMsg(DataStreamReader reader){ //Receiving a message
         code = OperationCode.GAME_OVER;
         deserialize(reader);
     }

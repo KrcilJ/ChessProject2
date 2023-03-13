@@ -9,10 +9,10 @@ public class MakeMoveMsg : Message
     public int goalX;
     public int goalY;
     public int team;
-    public MakeMoveMsg(){
+    public MakeMoveMsg(){ // Creating a message
         code = OperationCode.MAKE_MOVE;
     }
-     public MakeMoveMsg(DataStreamReader reader){
+     public MakeMoveMsg(DataStreamReader reader){ //Receiving a message
         code = OperationCode.MAKE_MOVE;
         deserialize(reader);
     }

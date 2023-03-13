@@ -15,7 +15,7 @@ public class Grid : MonoBehaviour
     private const int FIRST_PIECE_BX = 0;
     private int FIRST_PIECE_BY = 7;
     private const int FIRST_PIECE_WX = 0;
-    private const int FIRST_PIECE_WY = 1;
+    private const int FIRST_PIECE_WY = 0;
     [SerializeField] private int width, height;
 
     [SerializeField] private Animator menuAnimator;
@@ -52,6 +52,7 @@ public class Grid : MonoBehaviour
     }
 
     Move lastmove;
+    List<Move> movesPlayed = new List<Move>();
     private bool startAsBlack = false;
     private bool startAsWhite = false;
     private bool onlineGame = false;
@@ -143,7 +144,7 @@ public class Grid : MonoBehaviour
                 }
                 else
                 {
-                    Instantiate(forestTileDark, new Vector3(x, y), Quaternion.Euler(0f, 0f, 90f * randomNumber));
+                    // Instantiate(forestTileDark, new Vector3(x, y), Quaternion.Euler(0f, 0f, 90f * randomNumber));
                 }
                 //Assign the correct colors the the squres
                 spawnedTile.isLight(isLigt);
@@ -160,7 +161,8 @@ public class Grid : MonoBehaviour
         lastmove.piece = piece;
         lastmove.originalPos = new Vector2(piece.GetX(), piece.GetY());
         lastmove.currentPos = new Vector2(x, y);
-
+        
+        movesPlayed.Add(lastmove);
         Vector3 kingPos = findKing(playerToplay);
         Tile kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
         kingTile.resetColor(); //if the king was in check, reset the color of the king square to the original tile color
@@ -286,7 +288,7 @@ public class Grid : MonoBehaviour
         }
     }
 
-    //Create moves in a straight line
+    //Create moves in a straight line or a diagonal
     private void createLineIndicator(int xStep, int yStep, Piece piece)
     {
         int x = piece.GetX() + xStep;
@@ -506,6 +508,9 @@ public class Grid : MonoBehaviour
         //Set the king tile to red if the king is in check
         if (isInCheck(playerToPlay))
         {
+            if(piece.name == "wKing" || piece.name == "bKing"){
+                myMoves.RemoveAt(myMoves.Count - 1);
+            }
             Vector3 kingPos = findKing(playerToplay);
             kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
             kingTile.tileRed();
@@ -522,6 +527,16 @@ public class Grid : MonoBehaviour
             if (positions[(int)myMoves[j].x, (int)myMoves[j].y] != null)
             {
                 pieceToTake = positions[(int)myMoves[j].x, (int)myMoves[j].y];
+            }
+            if (playerToPlay == "white" && enPassantWhite == true && piece.name == "wPawn" && j == myMoves.Count - 1)
+            {
+                pieceToTake = positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y - 1];
+                positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y - 1] = null;
+            }
+            else if (playerToPlay == "black" && enPassantBlack == true && piece.name == "bPawn" && j == myMoves.Count - 1)
+            {
+                pieceToTake = positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y + 1];
+                positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y + 1] = null;
             }
             //Make the move on the board programatically (the board does not visually change)
             positions[(int)myMoves[j].x, (int)myMoves[j].y] = piece;
@@ -548,7 +563,19 @@ public class Grid : MonoBehaviour
             //If a piece has been overwritten by the move set the piece back
             if (pieceToTake != null)
             {
-                positions[(int)myMoves[j].x, (int)myMoves[j].y] = pieceToTake;
+                if (playerToPlay == "white" && enPassantWhite == true && piece.name == "wPawn" && j == myMoves.Count - 1)
+                {
+                    positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y - 1] = pieceToTake;
+                }
+                else if (playerToPlay == "black" && enPassantBlack == true && piece.name == "bPawn" && j == myMoves.Count - 1)
+                {
+                    positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y + 1] = pieceToTake;
+                }
+                else
+                {
+                    positions[(int)myMoves[j].x, (int)myMoves[j].y] = pieceToTake;
+                }
+
                 pieceToTake = null;
             }
             //if the move was on an empty square set the squere to null
@@ -576,7 +603,6 @@ public class Grid : MonoBehaviour
         //Check if castling is legal (the king cannot go through check thus the tile next to him has to be a legal move for castling to be legal)
         if ((piece.name == "wKing" || piece.name == "bKing") && legalMoves.Count >= 2)
         {
-
             if (((lastMoveX == 6 && (lastMoveY == 0 || lastMoveY == 7)) || (lastMoveX == 2 && (lastMoveY == 0 || lastMoveY == 7))) && (castleLong || castleShort))
             {
                 int moveIndex = -1;
@@ -676,7 +702,9 @@ public class Grid : MonoBehaviour
                         castleLong = true;
                         break;
                     }
-                    else { }
+                    else { 
+                        
+                    }
                 }
             }
             else
@@ -817,7 +845,7 @@ public class Grid : MonoBehaviour
 
     private void onStartGameClient(Message msg)
     {
-        //Check whih player we are
+        //Check which player we are
         if (currentPlayer == 1)
         {
             startAsBlack = true;

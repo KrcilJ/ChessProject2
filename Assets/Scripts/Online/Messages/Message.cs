@@ -1,27 +1,27 @@
 using Unity.Networking.Transport;
 using UnityEngine;
 
-public enum OperationCode{
-    KEEP_ALIVE = 1,
-    WELCOME = 2,
-    START_GAME = 3,
-    MAKE_MOVE = 4,
-    GAME_OVER = 5
-}
+
+//Base message class
 public class Message
 {
-    public OperationCode code {set; get;}
+    public OperationCode code { set; get; }
 
-    public virtual void serialize (ref DataStreamWriter writer){
+    public virtual void serialize(ref DataStreamWriter writer)
+    {
+        //All messages will have the first byte set to the code which identifies which type of message it is
         writer.WriteByte((byte)code);
     }
-    public virtual void deserialize(DataStreamReader reader){
+    public virtual void deserialize(DataStreamReader reader)
+    {
 
     }
-     public virtual void receivedOnClient(){
-        
+    public virtual void receivedOnClient()
+    {
+
     }
-     public virtual void receivedOnServer(NetworkConnection connection){
-        
+    public virtual void receivedOnServer(NetworkConnection connection)
+    {
+
     }
 }

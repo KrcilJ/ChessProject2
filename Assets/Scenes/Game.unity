@@ -2441,16 +2441,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bBishop: {fileID: 21300000, guid: 75beaa555b2d87645bafa640c5caf6a1, type: 3}
   bRook: {fileID: 21300000, guid: 1df62ad0916637c44b316f185c41bb80, type: 3}
-  bPawn: {fileID: 21300000, guid: 86feae9ba56459642812543e50d81afa, type: 3}
+  bPawn: {fileID: 21300000, guid: 994751dff368aba41933b39b9d45ec20, type: 3}
   bQueen: {fileID: 21300000, guid: 7076a83dfa739c24a86e5e279948bf05, type: 3}
   bKing: {fileID: 21300000, guid: 03d6540bc244cd14f8721f252adc7330, type: 3}
-  bKnight: {fileID: 21300000, guid: 3143c0c8ba98f5745ad6728d621fe192, type: 3}
+  bKnight: {fileID: 21300000, guid: 31ec04e9ec91c8b489f99c87a0914a14, type: 3}
   wBishop: {fileID: 21300000, guid: bf29b1e49bea14f479ad2bfbc4a11811, type: 3}
   wRook: {fileID: 21300000, guid: 4be6519cb91583b4b938b82c2c23312d, type: 3}
-  wPawn: {fileID: 21300000, guid: 8ae36dbdc1700794b86ac0d5a74fd303, type: 3}
+  wPawn: {fileID: 21300000, guid: 08fcedacaccceae4bb77cdd12dc1af35, type: 3}
   wQueen: {fileID: 21300000, guid: 6e6757557277f4b42919861f5b64c4bc, type: 3}
   wKing: {fileID: 21300000, guid: a80baa2f1a145d34db39eadf50efb9f9, type: 3}
-  wKnight: {fileID: 21300000, guid: c6b5d11c02b3ff244b6ec29d783f7a1a, type: 3}
+  wKnight: {fileID: 21300000, guid: e62f752469bbed8459c3015fc21fa333, type: 3}
   menuAnimator: {fileID: 297812764}
   lostText: {fileID: 1699588930}
   controller: {fileID: 0}
