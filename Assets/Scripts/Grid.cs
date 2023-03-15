@@ -50,9 +50,22 @@ public class Grid : MonoBehaviour
         public Vector2 currentPos;
         public Piece piece;
     }
+    public struct Move2
+    {
+        public string pieceName;
+        public int originalX;
+        public int originalY;
+        public int goalX;
+        public int goalY;
+        public bool capture;
+        public bool check;
+        public bool enpassant;
 
+    }
+    
+    private bool replayingGame = false;
     Move lastmove;
-    List<Move> movesPlayed = new List<Move>();
+    List<Move2> movesPlayed = new List<Move2>();
     private bool startAsBlack = false;
     private bool startAsWhite = false;
     private bool onlineGame = false;
@@ -154,7 +167,7 @@ public class Grid : MonoBehaviour
 
         cam.transform.position = new Vector3(width / 2f - 0.5f, height / 2f - 0.5f, -10); //Move the camera to the middle of the screen
     }
-
+   
     //Set the position of the piece so the program knows where a piece has moved
     public void SetPosition(Piece piece, int x, int y)
     {
@@ -163,7 +176,24 @@ public class Grid : MonoBehaviour
         lastmove.originalPos = new Vector2(piece.GetX(), piece.GetY());
         lastmove.currentPos = new Vector2(x, y);
         
-        movesPlayed.Add(lastmove);
+        if(!replayingGame){
+            Move2 movePlayed;
+            movePlayed.pieceName = piece.name;
+            movePlayed.originalX = piece.GetX();
+            movePlayed.originalY = piece.GetY();
+            movePlayed.goalX = x;
+            movePlayed.goalY = y;
+            if(positions[x,y] != null) {
+                movePlayed.capture = true;
+            }
+            else{
+                movePlayed.capture = false;
+            }
+            movePlayed.check = false;
+            movePlayed.enpassant = false;
+            movesPlayed.Add(movePlayed);
+        }
+       
         Vector3 kingPos = findKing(playerToplay);
         Tile kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
         kingTile.resetColor(); //if the king was in check, reset the color of the king square to the original tile color
@@ -509,6 +539,10 @@ public class Grid : MonoBehaviour
         //Set the king tile to red if the king is in check
         if (isInCheck(playerToPlay))
         {
+            Move2 checkMove = movesPlayed[movesPlayed.Count - 1];
+            checkMove.check = true;
+            movesPlayed[movesPlayed.Count - 1] = checkMove;
+           Debug.Log( movesPlayed[movesPlayed.Count - 1].check);
             if(piece.name == "wKing" || piece.name == "bKing"){
                 myMoves.RemoveAt(myMoves.Count - 1);
             }
@@ -523,7 +557,7 @@ public class Grid : MonoBehaviour
         //Debug.Log("my moves");
         for (int j = 0; j < myMoves.Count; j++)
         {
-            Debug.Log(piece + " " + myMoves[j] + " " + myMoves.Count);
+            //Debug.Log(piece + " " + myMoves[j] + " " + myMoves.Count);
             //if the move of the piece would take an enemy piece save that piece
             if (positions[(int)myMoves[j].x, (int)myMoves[j].y] != null)
             {
@@ -680,13 +714,19 @@ public class Grid : MonoBehaviour
             }
             Client.Instance.sendToServer(gameOverMsg);
         }
-        for (int i = 0; i < movesPlayed.Count - 1; i++)
+        int moveIndex = 1;
+        for (int i = 0; i < movesPlayed.Count; i++)
         {
-            string text = $"{i + 1 } ";
+            string text = $"{moveIndex } ";
+            moveIndex++;
             text+=convertNotation(movesPlayed[i]);
             //replayMove.generateReplayMoveIndex($"{i}");
             replayMove.generateReplayMove(text);
-            text = convertNotation(movesPlayed[i + 1]);
+            i++;
+            if(i >= movesPlayed.Count) {
+                break;
+            }
+            text = convertNotation(movesPlayed[i]);
             replayMove.generateReplayMove(text);
         }
         return true;
@@ -816,6 +856,8 @@ public class Grid : MonoBehaviour
     {
         return onlineGame;
     }
+
+
     //Register for online messages
     private void registerEvents()
     {
@@ -962,15 +1004,22 @@ public class Grid : MonoBehaviour
     public void replayGame(){
         destroyAssets();
         startGame();
+        replayingGame = true;
         //Show a back and forward button
 
     }
 
     public void replayNextMove(){
         int i = replayMoveIndex;
-        Piece piece = getPosition( (int)movesPlayed[i].originalPos.x,(int) movesPlayed[i].originalPos.y);
-        piece.transform.position = new Vector3(movesPlayed[i].currentPos.x, movesPlayed[i].currentPos.y, -1);
-        SetPosition(piece, (int)movesPlayed[i].currentPos.x,(int) movesPlayed[i].currentPos.y );
+        Piece piece = getPosition( movesPlayed[i].originalX,movesPlayed[i].originalY);
+        piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
+        Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
+        Debug.Log(pieceAtPos);
+        if(pieceAtPos != null) {
+            pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100);;
+        }
+        SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY );
+        
         replayMoveIndex++;
     }
     public void destroyAssets()
@@ -1002,9 +1051,9 @@ public class Grid : MonoBehaviour
             Destroy(boardGraphics[i]);
         }
     }
-    private string convertNotation(Move move){
+    private string convertNotation(Move2 move){
         string notation = null;
-         switch (move.piece.name)
+         switch (move.pieceName)
         {
             case "wPawn":
             case "bPawn":
@@ -1031,8 +1080,16 @@ public class Grid : MonoBehaviour
                 break;
 
         }
-        notation+=convertToFile((int)move.currentPos.x);
-        notation+=$"{(int)move.currentPos.y + 1}";
+        if(move.capture) {
+             notation+="x";
+        }
+        if(move.check) {
+             notation+="+";
+        }
+        notation+=convertToFile(move.originalX);
+        notation+=$"{move.originalY + 1}";
+        notation+=convertToFile(move.goalX);
+        notation+=$"{move.goalY + 1}";
         return notation;
     }
     private static string convertToFile(int file)
