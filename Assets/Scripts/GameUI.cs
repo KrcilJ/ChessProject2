@@ -22,6 +22,11 @@ public class GameUI : MonoBehaviour
     }
 
     // Button presses
+     public void replayGamePress()
+    {
+        menuAnimator.SetTrigger("NoMenu");
+        controller.GetComponent<Grid>().replayGame();
+    }
     public void gameOverMainMenuPress()
     {
         menuAnimator.SetTrigger("MainMenu");
