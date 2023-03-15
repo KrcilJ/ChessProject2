@@ -17,7 +17,7 @@ public class Grid : MonoBehaviour
     private const int FIRST_PIECE_WX = 0;
     private const int FIRST_PIECE_WY = 0;
     [SerializeField] private int width, height;
-
+    [SerializeField] private ReplayMove replayMove;
     [SerializeField] private Animator menuAnimator;
     [SerializeField] private GameObject forestTileDark;
     [SerializeField] private GameObject forestTileLight;
@@ -59,6 +59,7 @@ public class Grid : MonoBehaviour
 
     void Awake()
     {
+        
         registerEvents();
         positions = new Piece[width, height];
         FIRST_PIECE_BY = height - 1;
@@ -679,6 +680,15 @@ public class Grid : MonoBehaviour
             }
             Client.Instance.sendToServer(gameOverMsg);
         }
+        for (int i = 0; i < movesPlayed.Count - 1; i++)
+        {
+            string text = $"{i + 1 } ";
+            text+=convertNotation(movesPlayed[i]);
+            //replayMove.generateReplayMoveIndex($"{i}");
+            replayMove.generateReplayMove(text);
+            text = convertNotation(movesPlayed[i + 1]);
+            replayMove.generateReplayMove(text);
+        }
         return true;
     }
 
@@ -948,8 +958,21 @@ public class Grid : MonoBehaviour
         NetUtility.C_GAME_OVER -= onGameOverClient;
     }
 
+    private int replayMoveIndex = 0;
+    public void replayGame(){
+        destroyAssets();
+        startGame();
+        //Show a back and forward button
 
+    }
 
+    public void replayNextMove(){
+        int i = replayMoveIndex;
+        Piece piece = getPosition( (int)movesPlayed[i].originalPos.x,(int) movesPlayed[i].originalPos.y);
+        piece.transform.position = new Vector3(movesPlayed[i].currentPos.x, movesPlayed[i].currentPos.y, -1);
+        SetPosition(piece, (int)movesPlayed[i].currentPos.x,(int) movesPlayed[i].currentPos.y );
+        replayMoveIndex++;
+    }
     public void destroyAssets()
     {
         //unregisterEvents();
@@ -978,5 +1001,42 @@ public class Grid : MonoBehaviour
 
             Destroy(boardGraphics[i]);
         }
+    }
+    private string convertNotation(Move move){
+        string notation = null;
+         switch (move.piece.name)
+        {
+            case "wPawn":
+            case "bPawn":
+                break;
+            case "wRook":
+            case "BRook":
+                notation+="R";
+                break;
+            case "wQueen":
+            case "bQueen":
+                notation+="Q";
+                break;
+            case "wBishop":
+            case "bBishop":
+                notation+="B";
+                break;
+            case "wKnight":
+            case "bKnight":
+                notation+="N";
+                break;
+            case "wKing":
+            case "bKing":
+                notation+="K";
+                break;
+
+        }
+        notation+=convertToFile((int)move.currentPos.x);
+        notation+=$"{(int)move.currentPos.y + 1}";
+        return notation;
+    }
+    private static string convertToFile(int file)
+    {
+        return ((char)('a' + file)).ToString();
     }
 }
