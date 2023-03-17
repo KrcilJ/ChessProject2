@@ -60,7 +60,7 @@ public class Grid : MonoBehaviour
         public bool capture;
         public bool check;
         public bool enpassant;
-
+        public bool castle;
     }
 
     private bool replayingGame = false;
@@ -194,6 +194,7 @@ public class Grid : MonoBehaviour
             }
             movePlayed.check = false;
             movePlayed.enpassant = false;
+            movePlayed.castle = false;
             movesPlayed.Add(movePlayed);
         }
 
@@ -724,7 +725,7 @@ public class Grid : MonoBehaviour
             string text = $"{moveIndex} ";
             moveIndex++;
             text += convertNotation(movesPlayed[i]);
-            //replayMove.generateReplayMoveIndex($"{i}");
+            Debug.Log($"CASTLE {movesPlayed[i].castle} ");
             replayMove.generateReplayMove(text, i);
             i++;
             if (i >= movesPlayed.Count)
@@ -1025,7 +1026,7 @@ public class Grid : MonoBehaviour
             Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
             piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
             Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
-            Debug.Log(pieceAtPos);
+            // Debug.Log(pieceAtPos);
             if (pieceAtPos != null)
             {
                 pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
@@ -1049,7 +1050,7 @@ public class Grid : MonoBehaviour
             Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
             piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
             Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
-            Debug.Log(pieceAtPos);
+            // Debug.Log(pieceAtPos);
             if (pieceAtPos != null)
             {
                 pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
@@ -1131,22 +1132,43 @@ public class Grid : MonoBehaviour
                 break;
             case "wKing":
             case "bKing":
+                if (Math.Abs(move.goalX - move.originalX) == 2)
+                {
+                    Move2 moveMade = move;
+                    moveMade.castle = true;
+                    move = moveMade;
+                    if (move.goalX > 4)
+                    {
+                        notation = "O-O";
+
+                    }
+                    else
+                    {
+                        notation = "O-O-O";
+                    }
+                    return notation;
+                }
                 notation += "K";
                 break;
 
         }
+
+
+        notation += convertToFile(move.originalX);
+        notation += $"{move.originalY + 1}";
+
         if (move.capture)
         {
             notation += "x";
         }
+
+        notation += convertToFile(move.goalX);
+        notation += $"{move.goalY + 1}";
         if (move.check)
+
         {
             notation += "+";
         }
-        notation += convertToFile(move.originalX);
-        notation += $"{move.originalY + 1}";
-        notation += convertToFile(move.goalX);
-        notation += $"{move.goalY + 1}";
         return notation;
     }
     private static string convertToFile(int file)

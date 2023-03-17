@@ -119,14 +119,14 @@ public class Piece : MonoBehaviour
         rectTransform.GetComponent<Collider2D>().enabled = false;
         grid.clearMoves();
 
-        
+
         if (this != null)
         {
             //Generate the legal moves for the specific piece
             grid.GenerateIndicators(this);
             grid.legalMoves(this);
             grid.makeIndicators();
-        }   
+        }
     }
 
     void OnMouseDrag()
@@ -140,7 +140,7 @@ public class Piece : MonoBehaviour
 
         var rayOrigin = Camera.main.transform.position;
         var rayDirection = MouseWorldPosition() - Camera.main.transform.position;
-        
+
         //Cast a ray from the camera to the mouse to see where a piece is moving
         RaycastHit2D hitInfo;
         hitInfo = Physics2D.Raycast(MouseWorldPosition(), Vector2.zero);
@@ -180,36 +180,44 @@ public class Piece : MonoBehaviour
             {
                 //if the movec was legal change the position of the piece to the position of the square it is moving to
                 rectTransform.position = hitInfo.transform.position;
+                bool castleShort = grid.getCastleShort();
+                bool castleLong = grid.getCastleLong();
+
+                int x = this.GetX();
+                int y = this.GetY();
+
+                grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+
                 //Check if the move was a castling move and move the corresponding rook if the was a castling move
-                if (grid.getCastleLong() && (int)rectTransform.position.x == this.GetX() - 2)
+                if (castleLong && (int)rectTransform.position.x == x - 2)
                 {
-                    Piece rook = grid.getPosition(this.GetX() - 4, this.GetY()).GetComponent<Piece>();
+                    Piece rook = grid.getPosition(x - 4, y).GetComponent<Piece>();
                     rook.rectTransform.position = new Vector3(rectTransform.position.x + 1, rectTransform.position.y, -1);
                     grid.SetPosition(rook, (int)rectTransform.position.x + 1, (int)rectTransform.position.y);
                     grid.setcastleLong(false);
                 }
-                if (grid.getCastleShort() && (int)rectTransform.position.x == this.GetX() + 2)
+                if (castleShort && (int)rectTransform.position.x == x + 2)
                 {
-                    Piece rook = grid.getPosition(this.GetX() + 3, this.GetY()).GetComponent<Piece>();
+                    Piece rook = grid.getPosition(x + 3, y).GetComponent<Piece>();
                     rook.rectTransform.position = new Vector3(rectTransform.position.x - 1, rectTransform.position.y, -1);
                     grid.SetPosition(rook, (int)rectTransform.position.x - 1, (int)rectTransform.position.y);
                     grid.setCastleShort(false);
                 }
 
-                grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+
                 //Check if the move en passant, if it was destroy the pawn behind the en passant move
-                if (grid.getenPassantWhite() && grid.getPosition(this.GetX(), this.GetY() - 1) != null)
+                if (grid.getenPassantWhite() && grid.getPosition(x, y - 1) != null)
                 {
-                    Destroy(grid.getPosition(this.GetX(), this.GetY() - 1).gameObject);
+                    Destroy(grid.getPosition(x, y - 1).gameObject);
                     if (!grid.getOnlineGame())
                     {
                         grid.setEnpassantWhite(false);
                     }
 
                 }
-                if (grid.getenPassantBlack() && grid.getPosition(this.GetX(), this.GetY() + 1) != null)
+                if (grid.getenPassantBlack() && grid.getPosition(x, y + 1) != null)
                 {
-                    Destroy(grid.getPosition(this.GetX(), this.GetY() + 1).gameObject);
+                    Destroy(grid.getPosition(this.GetX(), y + 1).gameObject);
                     if (!grid.getOnlineGame())
                     {
                         grid.setEnpassantBlack(false);
