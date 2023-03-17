@@ -724,16 +724,30 @@ public class Grid : MonoBehaviour
         {
             string text = $"{moveIndex} ";
             moveIndex++;
-            text += convertNotation(movesPlayed[i]);
-            Debug.Log($"CASTLE {movesPlayed[i].castle} ");
+            string notation = convertNotation(movesPlayed[i]);
+            if (notation == "O-O" || notation == "O-O-O")
+            {
+                Move2 move = movesPlayed[i];
+                move.castle = true;
+                movesPlayed[i] = move;
+                i++;
+            }
+            text += notation;
             replayMove.generateReplayMove(text, i);
             i++;
             if (i >= movesPlayed.Count)
             {
                 break;
             }
-            text = convertNotation(movesPlayed[i]);
-            replayMove.generateReplayMove(text, i);
+            notation = convertNotation(movesPlayed[i]);
+            if (notation == "O-O" || notation == "O-O-O")
+            {
+                Move2 move = movesPlayed[i];
+                move.castle = true;
+                movesPlayed[i] = move;
+                i++;
+            }
+            replayMove.generateReplayMove(notation, i);
         }
         return true;
     }
@@ -1057,6 +1071,10 @@ public class Grid : MonoBehaviour
             }
             SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY);
             replayMoveIndex++;
+            if (movesPlayed[i].castle)
+            {
+                replayNextMove();
+            }
             if (replayMoveIndex % 2 == 0)
             {
                 playerToplay = "white";
@@ -1066,7 +1084,6 @@ public class Grid : MonoBehaviour
                 playerToplay = "black";
             }
         }
-
     }
     public void replayPrevMove()
     {
@@ -1134,9 +1151,7 @@ public class Grid : MonoBehaviour
             case "bKing":
                 if (Math.Abs(move.goalX - move.originalX) == 2)
                 {
-                    Move2 moveMade = move;
-                    moveMade.castle = true;
-                    move = moveMade;
+
                     if (move.goalX > 4)
                     {
                         notation = "O-O";
