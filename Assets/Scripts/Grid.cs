@@ -1019,6 +1019,7 @@ public class Grid : MonoBehaviour
     {
         destroyAssets();
         startGame();
+        replayMoveIndex = index;
         for (int i = 0; i < index; i++)
         {
             Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
@@ -1042,25 +1043,38 @@ public class Grid : MonoBehaviour
     }
     public void replayNextMove()
     {
-        int i = replayMoveIndex;
-        Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
-        piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
-        Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
-        Debug.Log(pieceAtPos);
-        if (pieceAtPos != null)
+        if (replayMoveIndex < movesPlayed.Count)
         {
-            pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
+            int i = replayMoveIndex;
+            Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
+            piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
+            Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
+            Debug.Log(pieceAtPos);
+            if (pieceAtPos != null)
+            {
+                pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
+            }
+            SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY);
+            replayMoveIndex++;
+            if (replayMoveIndex % 2 == 0)
+            {
+                playerToplay = "white";
+            }
+            else
+            {
+                playerToplay = "black";
+            }
         }
-        SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY);
-        replayMoveIndex++;
-        if (replayMoveIndex % 2 == 0)
+
+    }
+    public void replayPrevMove()
+    {
+        if (replayMoveIndex > 0)
         {
-            playerToplay = "white";
+            replayNumMoves(replayMoveIndex - 1);
+            //replayMoveIndex--;
         }
-        else
-        {
-            playerToplay = "black";
-        }
+
     }
     public void destroyAssets()
     {
