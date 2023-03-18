@@ -1368,4 +1368,54 @@ public class Grid : MonoBehaviour
         }
         return fenNotation;
     }
+
+    public void fromFenToBoard(string FEN)
+    {
+        int x = 7;
+        int y = 0;
+        for (int i = 0; i < FEN.Length; i++)
+        {
+            string piece = FEN[i].ToString();
+            //Split the board part from the rest
+            var fenParts = FEN.Split(' ');
+            var fenRows = fenParts[0].Split('/');
+
+            for (int row = 0; row < 8; row++)
+            {
+                var fenRow = fenRows[7 - row];
+                var col = 0;
+
+                foreach (var fenChar in fenRow)
+                {
+                    if (char.IsDigit(fenChar))
+                    {
+                        col += (int)char.GetNumericValue(fenChar);
+                    }
+                    else
+                    {
+                        var player = char.IsUpper(fenChar) ? "w" : "b";
+                        string type = getPieceType(char.ToLower(fenChar));
+
+                        col++;
+                    }
+                }
+            }
+
+
+        }
+    }
+
+    private string getPieceType(char fenChar)
+    {
+        switch (fenChar)
+        {
+            case 'p': return "Pawn";
+            case 'n': return "Knight";
+            case 'b': return "Bishop";
+            case 'r': return "Rook";
+            case 'q': return "Queen";
+            case 'k': return "King";
+            default: throw new ArgumentException($"Invalid FEN character: {fenChar}");
+        }
+    }
 }
