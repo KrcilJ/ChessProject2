@@ -127,6 +127,7 @@ public class Grid : MonoBehaviour
             positions[playerWhite[i].GetX(), playerWhite[i].GetY()] = playerWhite[i];
             positions[playerBlack[i].GetX(), playerBlack[i].GetY()] = playerBlack[i];
         }
+
         //Rotate the camera based on what player should be on the bottom
         if (currentPlayer == 1)
         {
@@ -171,6 +172,7 @@ public class Grid : MonoBehaviour
     //Set the position of the piece so the program knows where a piece has moved
     public void SetPosition(Piece piece, int x, int y)
     {
+        Debug.Log(convertToFen());
         //Set values of the move played as the last move
         lastmove.piece = piece;
         lastmove.originalPos = new Vector2(piece.GetX(), piece.GetY());
@@ -313,6 +315,14 @@ public class Grid : MonoBehaviour
                 if (piece.GetPlayer() == getPlayerToPlay())
                 {
                     canCastle(piece);
+                    if (castleLong)
+                    {
+                        createIndicator(x - 2, y, piece);
+                    }
+                    if (castleShort)
+                    {
+                        createIndicator(x + 2, y, piece);
+                    }
                 }
                 // Debug.Log("after methods");
                 // for(int i = 0; i < moves.Count; i++) {
@@ -755,10 +765,11 @@ public class Grid : MonoBehaviour
     //Check if its possible to castle (without checking if the king is in check)
     private void canCastle(Piece king)
     {
-        int kingX = king.GetX();
-        int kingY = king.GetY();
+
         if (king.getHasMoved() == false)
         {
+            int kingX = king.GetX();
+            int kingY = king.GetY();
             Piece initialRookPos = positions[kingX - 4, kingY];
 
             if (initialRookPos != null && (positions[kingX - 1, kingY] == null && positions[kingX - 2, kingY] == null
@@ -768,13 +779,13 @@ public class Grid : MonoBehaviour
                 {
                     if (moves[i].x == kingX - 1 && moves[i].y == kingY)
                     {
-                        createIndicator(kingX - 2, kingY, king);
+
                         castleLong = true;
                         break;
                     }
                     else
                     {
-
+                        castleLong = false;
                     }
                 }
             }
@@ -789,7 +800,7 @@ public class Grid : MonoBehaviour
                 {
                     if (moves[i].x == kingX + 1 && moves[i].y == kingY)
                     {
-                        createIndicator(kingX + 2, kingY, king);
+
                         castleShort = true;
                         break;
                     }
@@ -1189,5 +1200,130 @@ public class Grid : MonoBehaviour
     private static string convertToFile(int file)
     {
         return ((char)('a' + file)).ToString();
+    }
+
+    private string convertToFen()
+    {
+        string fenNotation = "";
+        for (int i = height - 1; i >= 0; i--)
+        {
+            int emptySquares = 0;
+            for (int j = 0; j < width; j++)
+            {
+
+
+                if (positions[j, i] == null)
+                {
+                    emptySquares++;
+                    if (emptySquares == 8)
+                    {
+                        fenNotation += $"{emptySquares}";
+                    }
+                }
+                else
+                {
+                    string name = positions[j, i].name;
+                    if (emptySquares != 0)
+                    {
+                        fenNotation += $"{emptySquares}";
+                        emptySquares = 0;
+                    }
+
+                    switch (name)
+                    {
+
+                        case "wPawn":
+                            fenNotation += "P";
+                            break;
+                        case "bPawn":
+                            fenNotation += "p";
+                            break;
+                        case "wRook":
+                            fenNotation += "R";
+                            break;
+                        case "bRook":
+                            fenNotation += "r";
+                            break;
+                        case "wQueen":
+                            fenNotation += "Q";
+                            break;
+                        case "bQueen":
+                            fenNotation += "q";
+                            break;
+                        case "wBishop":
+                            fenNotation += "B";
+                            break;
+                        case "bBishop":
+                            fenNotation += "b";
+                            break;
+                        case "wKnight":
+                            fenNotation += "N";
+                            break;
+                        case "bKnight":
+                            fenNotation += "n";
+                            break;
+                        case "wKing":
+                            fenNotation += "K";
+                            break;
+                        case "bKing":
+                            fenNotation += "k";
+                            break;
+
+                    }
+                }
+            }
+
+            fenNotation += "/";
+        }
+        if (playerToplay == "white")
+        {
+            fenNotation += " b";
+        }
+        else
+        {
+            fenNotation += " w";
+        }
+        Vector3 kingPos = findKing("white");
+        Piece king = positions[(int)kingPos.x, (int)kingPos.y];
+        canCastle(king);
+        Debug.Log(castleShort);
+        Debug.Log(castleLong);
+        if (castleShort)
+        {
+            fenNotation += " K";
+        }
+        else
+        {
+            fenNotation += " -";
+        }
+        if (castleLong)
+        {
+            fenNotation += "Q";
+        }
+        else
+        {
+            fenNotation += "-";
+        }
+
+        kingPos = findKing("black");
+        king = positions[(int)kingPos.x, (int)kingPos.y];
+        canCastle(king);
+        if (castleShort)
+        {
+            fenNotation += " k";
+        }
+        else
+        {
+            fenNotation += " -";
+        }
+        if (castleLong)
+        {
+            fenNotation += "q";
+        }
+        else
+        {
+            fenNotation += "-";
+        }
+        return fenNotation;
     }
 }
