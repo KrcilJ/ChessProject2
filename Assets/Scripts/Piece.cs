@@ -180,14 +180,26 @@ public class Piece : MonoBehaviour
             {
                 //if the movec was legal change the position of the piece to the position of the square it is moving to
                 rectTransform.position = hitInfo.transform.position;
+                //Handle queen promotion
+
                 bool castleShort = grid.getCastleShort();
                 bool castleLong = grid.getCastleLong();
 
                 int x = this.GetX();
                 int y = this.GetY();
-
+                setHasMoved(true);
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+                if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
+                {
 
+                    this.name = "wQueen";
+                    SetPiece();
+                }
+                else if (this.name == "bPawn" && (int)rectTransform.position.y == 0)
+                {
+                    this.name = "bQueen";
+                    SetPiece();
+                }
                 //Check if the move was a castling move and move the corresponding rook if the was a castling move
                 if (castleLong && (int)rectTransform.position.x == x - 2)
                 {
@@ -223,7 +235,7 @@ public class Piece : MonoBehaviour
                         grid.setEnpassantBlack(false);
                     }
                 }
-                setHasMoved(true);
+
                 //Clean up
                 grid.clearMoves();
                 grid.DestroyIndicators();
@@ -242,10 +254,22 @@ public class Piece : MonoBehaviour
             {
                 //move the piece to the square
                 rectTransform.position = hitInfo.transform.position;
+                setHasMoved(true);
                 //Destroy the piece that was on the square
                 Destroy(hitInfo.transform.gameObject);
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
-                setHasMoved(true);
+                if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
+                {
+
+                    this.name = "wQueen";
+                    SetPiece();
+                }
+                else if (this.name == "bPawn" && (int)rectTransform.position.y == 0)
+                {
+                    this.name = "bQueen";
+                    SetPiece();
+                }
+
                 grid.clearMoves();
                 grid.DestroyIndicators();
                 if (player == "white")

@@ -59,6 +59,7 @@ public class Grid : MonoBehaviour
         public int goalY;
         public bool capture;
         public bool check;
+        public bool checkmate;
         public bool enpassant;
         public bool castle;
     }
@@ -172,7 +173,7 @@ public class Grid : MonoBehaviour
     //Set the position of the piece so the program knows where a piece has moved
     public void SetPosition(Piece piece, int x, int y)
     {
-        Debug.Log(convertToFen());
+
         //Set values of the move played as the last move
         lastmove.piece = piece;
         lastmove.originalPos = new Vector2(piece.GetX(), piece.GetY());
@@ -197,6 +198,7 @@ public class Grid : MonoBehaviour
             movePlayed.check = false;
             movePlayed.enpassant = false;
             movePlayed.castle = false;
+            movePlayed.checkmate = false;
             movesPlayed.Add(movePlayed);
         }
 
@@ -207,7 +209,10 @@ public class Grid : MonoBehaviour
         positions[piece.GetX(), piece.GetY()] = null;
         piece.SetX(x);
         piece.SetY(y);
-
+        if (!replayingGame)
+        {
+            Debug.Log(convertToFen());
+        }
         //Send a message with the move to the other player
         if (onlineGame)
         {
@@ -730,6 +735,9 @@ public class Grid : MonoBehaviour
             Client.Instance.sendToServer(gameOverMsg);
         }
         int moveIndex = 1;
+        Move2 move = movesPlayed[movesPlayed.Count - 1];
+        move.checkmate = true;
+        movesPlayed[movesPlayed.Count - 1] = move;
         for (int i = 0; i < movesPlayed.Count; i++)
         {
             string text = $"{moveIndex} ";
@@ -737,7 +745,7 @@ public class Grid : MonoBehaviour
             string notation = convertNotation(movesPlayed[i]);
             if (notation == "O-O" || notation == "O-O-O")
             {
-                Move2 move = movesPlayed[i];
+                move = movesPlayed[i];
                 move.castle = true;
                 movesPlayed[i] = move;
                 i++;
@@ -752,7 +760,7 @@ public class Grid : MonoBehaviour
             notation = convertNotation(movesPlayed[i]);
             if (notation == "O-O" || notation == "O-O-O")
             {
-                Move2 move = movesPlayed[i];
+                move = movesPlayed[i];
                 move.castle = true;
                 movesPlayed[i] = move;
                 i++;
@@ -1056,6 +1064,17 @@ public class Grid : MonoBehaviour
             {
                 pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
             }
+            if (piece.name == "wQueen" && movesPlayed[i].goalY == height - 1)
+            {
+
+                piece.name = "wQueen";
+                piece.SetPiece();
+            }
+            else if (piece.name == "bQueen" && movesPlayed[i].goalY == 0)
+            {
+                piece.name = "bQueen";
+                piece.SetPiece();
+            }
             SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY);
         }
         if (index % 2 == 0)
@@ -1190,8 +1209,19 @@ public class Grid : MonoBehaviour
 
         notation += convertToFile(move.goalX);
         notation += $"{move.goalY + 1}";
+        if (move.pieceName == "wPawn" && move.goalY == height - 1)
+        {
+            notation += "Q";
+        }
+        else if (move.pieceName == "bPawn" && move.goalY == 0)
+        {
+            notation += "Q";
+        }
         if (move.check)
-
+        {
+            notation += "+";
+        }
+        if (move.checkmate)
         {
             notation += "+";
         }
@@ -1283,14 +1313,21 @@ public class Grid : MonoBehaviour
         {
             fenNotation += " w";
         }
+        castleLong = false;
+        castleShort = false;
         Vector3 kingPos = findKing("white");
         Piece king = positions[(int)kingPos.x, (int)kingPos.y];
-        canCastle(king);
-        Debug.Log(castleShort);
-        Debug.Log(castleLong);
+        clearMoves();
+        GenerateIndicators(king);
+        if (king.GetPlayer() != playerToplay)
+        {
+            canCastle(king);
+        }
+        clearMoves();
         if (castleShort)
         {
             fenNotation += " K";
+            castleShort = false;
         }
         else
         {
@@ -1299,6 +1336,7 @@ public class Grid : MonoBehaviour
         if (castleLong)
         {
             fenNotation += "Q";
+            castleLong = false;
         }
         else
         {
@@ -1307,7 +1345,11 @@ public class Grid : MonoBehaviour
 
         kingPos = findKing("black");
         king = positions[(int)kingPos.x, (int)kingPos.y];
-        canCastle(king);
+        GenerateIndicators(king);
+        if (king.GetPlayer() != playerToplay)
+        {
+            canCastle(king);
+        }
         if (castleShort)
         {
             fenNotation += " k";
