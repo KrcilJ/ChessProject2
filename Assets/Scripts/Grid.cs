@@ -70,7 +70,7 @@ public class Grid : MonoBehaviour
     private bool startAsBlack = false;
     private bool startAsWhite = false;
     private bool onlineGame = false;
-
+    List<string> Fens = new List<string>();
     void Awake()
     {
 
@@ -211,7 +211,7 @@ public class Grid : MonoBehaviour
         piece.SetY(y);
         if (!replayingGame)
         {
-            Debug.Log(convertToFen());
+            Fens.Add(convertToFen());
         }
         //Send a message with the move to the other player
         if (onlineGame)
@@ -1088,32 +1088,35 @@ public class Grid : MonoBehaviour
     }
     public void replayNextMove()
     {
-        if (replayMoveIndex < movesPlayed.Count)
-        {
-            int i = replayMoveIndex;
-            Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
-            piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
-            Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
-            // Debug.Log(pieceAtPos);
-            if (pieceAtPos != null)
-            {
-                pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
-            }
-            SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY);
-            replayMoveIndex++;
-            if (movesPlayed[i].castle)
-            {
-                replayNextMove();
-            }
-            if (replayMoveIndex % 2 == 0)
-            {
-                playerToplay = "white";
-            }
-            else
-            {
-                playerToplay = "black";
-            }
-        }
+        destroyPieces();
+        fromFenToBoard(Fens[replayMoveIndex]);
+        replayMoveIndex++;
+        // if (replayMoveIndex < movesPlayed.Count)
+        // {
+        //     int i = replayMoveIndex;
+        //     Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
+        //     piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
+        //     Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
+        //     // Debug.Log(pieceAtPos);
+        //     if (pieceAtPos != null)
+        //     {
+        //         pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
+        //     }
+        //     SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY);
+        //     replayMoveIndex++;
+        //     if (movesPlayed[i].castle)
+        //     {
+        //         replayNextMove();
+        //     }
+        //     if (replayMoveIndex % 2 == 0)
+        //     {
+        //         playerToplay = "white";
+        //     }
+        //     else
+        //     {
+        //         playerToplay = "black";
+        //     }
+        // }
     }
     public void replayPrevMove()
     {
@@ -1373,35 +1376,30 @@ public class Grid : MonoBehaviour
     {
         int x = 7;
         int y = 0;
-        for (int i = 0; i < FEN.Length; i++)
+        //Split the board part from the rest
+        var fenParts = FEN.Split(' ');
+        var fenRows = fenParts[0].Split('/');
+
+        for (int row = 0; row < 8; row++)
         {
-            string piece = FEN[i].ToString();
-            //Split the board part from the rest
-            var fenParts = FEN.Split(' ');
-            var fenRows = fenParts[0].Split('/');
+            var fenRow = fenRows[7 - row];
+            var col = 0;
 
-            for (int row = 0; row < 8; row++)
+            foreach (var fenChar in fenRow)
             {
-                var fenRow = fenRows[7 - row];
-                var col = 0;
-
-                foreach (var fenChar in fenRow)
+                if (char.IsDigit(fenChar))
                 {
-                    if (char.IsDigit(fenChar))
-                    {
-                        col += (int)char.GetNumericValue(fenChar);
-                    }
-                    else
-                    {
-                        var player = char.IsUpper(fenChar) ? "w" : "b";
-                        string type = getPieceType(char.ToLower(fenChar));
-
-                        col++;
-                    }
+                    col += (int)char.GetNumericValue(fenChar);
+                }
+                else
+                {
+                    var player = char.IsUpper(fenChar) ? "w" : "b";
+                    string type = getPieceType(char.ToLower(fenChar));
+                    string piece = player + type;
+                    CreatePiece(piece, col, row);
+                    col++;
                 }
             }
-
-
         }
     }
 
@@ -1416,6 +1414,15 @@ public class Grid : MonoBehaviour
             case 'q': return "Queen";
             case 'k': return "King";
             default: throw new ArgumentException($"Invalid FEN character: {fenChar}");
+        }
+    }
+    public void destroyPieces()
+    {
+        GameObject[] pieces = GameObject.FindGameObjectsWithTag("Piece");
+        //Destroy all pieces except the general piece that has been initialized as a [Serailized field], always index 0 so start at index 1 to not destry it
+        for (int i = 1; i < pieces.Length; i++)
+        {
+            Destroy(pieces[i]);
         }
     }
 }
