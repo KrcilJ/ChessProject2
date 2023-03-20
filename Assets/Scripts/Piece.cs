@@ -188,6 +188,7 @@ public class Piece : MonoBehaviour
                 int x = this.GetX();
                 int y = this.GetY();
                 setHasMoved(true);
+
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
                 if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
                 {

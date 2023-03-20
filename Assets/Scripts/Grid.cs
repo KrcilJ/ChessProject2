@@ -37,7 +37,7 @@ public class Grid : MonoBehaviour
     private Piece[] playerWhite = new Piece[2 * NUM_PIECES];
     List<Vector3> moves = new List<Vector3>();
     List<Vector3> leagalMoves = new List<Vector3>();
-
+    private string startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w -- --";
     private bool castleLong = false;
     private bool castleShort = false;
     private bool enPassantWhite = false;
@@ -81,54 +81,55 @@ public class Grid : MonoBehaviour
 
     public void startGame()
     {
-        playerToplay = "white";
+        //playerToplay = "white";
         menuAnimator.SetTrigger("NoMenu");
         GenerateGrid();
-        playerWhite = new Piece[]
-        {
-            CreatePiece("wRook", FIRST_PIECE_WX, FIRST_PIECE_WY),
-            CreatePiece("wKnight", FIRST_PIECE_WX + 1, FIRST_PIECE_WY),
-            CreatePiece("wBishop", FIRST_PIECE_WX + 2, FIRST_PIECE_WY),
-            CreatePiece("wQueen", FIRST_PIECE_WX + 3, FIRST_PIECE_WY),
-            CreatePiece("wKing", FIRST_PIECE_WX + 4, FIRST_PIECE_WY),
-            CreatePiece("wBishop",FIRST_PIECE_WX + 5, FIRST_PIECE_WY),
-            CreatePiece("wKnight",FIRST_PIECE_WX + 6, FIRST_PIECE_WY),
-            CreatePiece("wRook", FIRST_PIECE_WX + 7, FIRST_PIECE_WY),
-            CreatePiece("wPawn", FIRST_PIECE_WX, FIRST_PIECE_WY + 1),
-            CreatePiece("wPawn", FIRST_PIECE_WX + 1, FIRST_PIECE_WY + 1),
-            CreatePiece("wPawn", FIRST_PIECE_WX + 2, FIRST_PIECE_WY + 1),
-            CreatePiece("wPawn", FIRST_PIECE_WX + 3, FIRST_PIECE_WY + 1),
-            CreatePiece("wPawn", FIRST_PIECE_WX + 4, FIRST_PIECE_WY + 1),
-            CreatePiece("wPawn", FIRST_PIECE_WX + 5, FIRST_PIECE_WY + 1),
-            CreatePiece("wPawn", FIRST_PIECE_WX + 6, FIRST_PIECE_WY + 1),
-            CreatePiece("wPawn", FIRST_PIECE_WX + 7, FIRST_PIECE_WY + 1)
-        };
-        playerBlack = new Piece[]
-        {
-            CreatePiece("bRook", FIRST_PIECE_BX, FIRST_PIECE_BY),
-            CreatePiece("bKnight", FIRST_PIECE_BX + 1, FIRST_PIECE_BY),
-            CreatePiece("bBishop", FIRST_PIECE_BX + 2, FIRST_PIECE_BY),
-            CreatePiece("bQueen", FIRST_PIECE_BX + 3, FIRST_PIECE_BY),
-            CreatePiece("bKing", FIRST_PIECE_BX + 4, FIRST_PIECE_BY),
-            CreatePiece("bBishop", FIRST_PIECE_BX + 5, FIRST_PIECE_BY),
-            CreatePiece("bKnight", FIRST_PIECE_BX + 6, FIRST_PIECE_BY),
-            CreatePiece("bRook", FIRST_PIECE_BX + 7, FIRST_PIECE_BY),
-            CreatePiece("bPawn", FIRST_PIECE_BX, FIRST_PIECE_BY - 1),
-            CreatePiece("bPawn", FIRST_PIECE_BX + 1, FIRST_PIECE_BY - 1),
-            CreatePiece("bPawn", FIRST_PIECE_BX + 2, FIRST_PIECE_BY - 1),
-            CreatePiece("bPawn", FIRST_PIECE_BX + 3, FIRST_PIECE_BY - 1),
-            CreatePiece("bPawn", FIRST_PIECE_BX + 4, FIRST_PIECE_BY - 1),
-            CreatePiece("bPawn", FIRST_PIECE_BX + 5, FIRST_PIECE_BY - 1),
-            CreatePiece("bPawn", FIRST_PIECE_BX + 6, FIRST_PIECE_BY - 1),
-            CreatePiece("bPawn", FIRST_PIECE_BX + 7, FIRST_PIECE_BY - 1)
-        };
+        // playerWhite = new Piece[]
+        // {
+        //     CreatePiece("wRook", FIRST_PIECE_WX, FIRST_PIECE_WY),
+        //     CreatePiece("wKnight", FIRST_PIECE_WX + 1, FIRST_PIECE_WY),
+        //     CreatePiece("wBishop", FIRST_PIECE_WX + 2, FIRST_PIECE_WY),
+        //     CreatePiece("wQueen", FIRST_PIECE_WX + 3, FIRST_PIECE_WY),
+        //     CreatePiece("wKing", FIRST_PIECE_WX + 4, FIRST_PIECE_WY),
+        //     CreatePiece("wBishop",FIRST_PIECE_WX + 5, FIRST_PIECE_WY),
+        //     CreatePiece("wKnight",FIRST_PIECE_WX + 6, FIRST_PIECE_WY),
+        //     CreatePiece("wRook", FIRST_PIECE_WX + 7, FIRST_PIECE_WY),
+        //     CreatePiece("wPawn", FIRST_PIECE_WX, FIRST_PIECE_WY + 1),
+        //     CreatePiece("wPawn", FIRST_PIECE_WX + 1, FIRST_PIECE_WY + 1),
+        //     CreatePiece("wPawn", FIRST_PIECE_WX + 2, FIRST_PIECE_WY + 1),
+        //     CreatePiece("wPawn", FIRST_PIECE_WX + 3, FIRST_PIECE_WY + 1),
+        //     CreatePiece("wPawn", FIRST_PIECE_WX + 4, FIRST_PIECE_WY + 1),
+        //     CreatePiece("wPawn", FIRST_PIECE_WX + 5, FIRST_PIECE_WY + 1),
+        //     CreatePiece("wPawn", FIRST_PIECE_WX + 6, FIRST_PIECE_WY + 1),
+        //     CreatePiece("wPawn", FIRST_PIECE_WX + 7, FIRST_PIECE_WY + 1)
+        // };
+        // playerBlack = new Piece[]
+        // {
+        //     CreatePiece("bRook", FIRST_PIECE_BX, FIRST_PIECE_BY),
+        //     CreatePiece("bKnight", FIRST_PIECE_BX + 1, FIRST_PIECE_BY),
+        //     CreatePiece("bBishop", FIRST_PIECE_BX + 2, FIRST_PIECE_BY),
+        //     CreatePiece("bQueen", FIRST_PIECE_BX + 3, FIRST_PIECE_BY),
+        //     CreatePiece("bKing", FIRST_PIECE_BX + 4, FIRST_PIECE_BY),
+        //     CreatePiece("bBishop", FIRST_PIECE_BX + 5, FIRST_PIECE_BY),
+        //     CreatePiece("bKnight", FIRST_PIECE_BX + 6, FIRST_PIECE_BY),
+        //     CreatePiece("bRook", FIRST_PIECE_BX + 7, FIRST_PIECE_BY),
+        //     CreatePiece("bPawn", FIRST_PIECE_BX, FIRST_PIECE_BY - 1),
+        //     CreatePiece("bPawn", FIRST_PIECE_BX + 1, FIRST_PIECE_BY - 1),
+        //     CreatePiece("bPawn", FIRST_PIECE_BX + 2, FIRST_PIECE_BY - 1),
+        //     CreatePiece("bPawn", FIRST_PIECE_BX + 3, FIRST_PIECE_BY - 1),
+        //     CreatePiece("bPawn", FIRST_PIECE_BX + 4, FIRST_PIECE_BY - 1),
+        //     CreatePiece("bPawn", FIRST_PIECE_BX + 5, FIRST_PIECE_BY - 1),
+        //     CreatePiece("bPawn", FIRST_PIECE_BX + 6, FIRST_PIECE_BY - 1),
+        //     CreatePiece("bPawn", FIRST_PIECE_BX + 7, FIRST_PIECE_BY - 1)
+        // };
 
-        for (int i = 0; i < 2 * NUM_PIECES; i++)
-        {
-            positions[playerWhite[i].GetX(), playerWhite[i].GetY()] = playerWhite[i];
-            positions[playerBlack[i].GetX(), playerBlack[i].GetY()] = playerBlack[i];
-        }
-
+        // for (int i = 0; i < 2 * NUM_PIECES; i++)
+        // {
+        //     positions[playerWhite[i].GetX(), playerWhite[i].GetY()] = playerWhite[i];
+        //     positions[playerBlack[i].GetX(), playerBlack[i].GetY()] = playerBlack[i];
+        // }
+        fromFenToBoard(startingFEN);
+        Fens.Add(startingFEN);
         //Rotate the camera based on what player should be on the bottom
         if (currentPlayer == 1)
         {
@@ -737,17 +738,26 @@ public class Grid : MonoBehaviour
             }
             Client.Instance.sendToServer(gameOverMsg);
         }
-        int moveIndex = 1;
+
         Move2 move = movesPlayed[movesPlayed.Count - 1];
         move.checkmate = true;
         movesPlayed[movesPlayed.Count - 1] = move;
+
+        return true;
+    }
+    public void generatePlayedMoves()
+    {
+        int moveIndex = 1;
+        Move2 move;
         for (int i = 0; i < movesPlayed.Count; i++)
+
         {
             string text = $"{moveIndex} ";
             moveIndex++;
             string notation = convertNotation(movesPlayed[i]);
             if (notation == "O-O" || notation == "O-O-O")
             {
+                Fens.RemoveAt(i);
                 move = movesPlayed[i];
                 move.castle = true;
                 movesPlayed[i] = move;
@@ -770,9 +780,7 @@ public class Grid : MonoBehaviour
             }
             replayMove.generateReplayMove(notation, i);
         }
-        return true;
     }
-
     //Check if its possible to castle (without checking if the king is in check)
     private void canCastle(Piece king)
     {
@@ -899,7 +907,10 @@ public class Grid : MonoBehaviour
     {
         return onlineGame;
     }
-
+    public void setReplaingGame(bool value)
+    {
+        replayingGame = value;
+    }
 
     //Register for online messages
     private void registerEvents()
@@ -1049,50 +1060,66 @@ public class Grid : MonoBehaviour
         destroyAssets();
         startGame();
         replayingGame = true;
+        generatePlayedMoves();
+        for (int i = 0; i < Fens.Count - 1; i++)
+        {
+            Debug.Log(Fens[i]);
+        }
         //Show a back and forward button
 
     }
     public void replayNumMoves(int index)
     {
-        destroyAssets();
-        startGame();
-        replayMoveIndex = index;
-        for (int i = 0; i < index; i++)
-        {
-            Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
-            piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
-            Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
-            if (pieceAtPos != null)
-            {
-                pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
-            }
-            if (piece.name == "wQueen" && movesPlayed[i].goalY == height - 1)
-            {
+        // destroyAssets();
+        // startGame();
+        replayMoveIndex = index - 1;
+        destroyPieces();
+        fromFenToBoard(Fens[replayMoveIndex]);
+        // for (int i = 0; i < index; i++)
+        // {
+        //     Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
+        //     piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
+        //     Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
+        //     if (pieceAtPos != null)
+        //     {
+        //         pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
+        //     }
+        //     if (piece.name == "wQueen" && movesPlayed[i].goalY == height - 1)
+        //     {
 
-                piece.name = "wQueen";
-                piece.SetPiece();
-            }
-            else if (piece.name == "bQueen" && movesPlayed[i].goalY == 0)
-            {
-                piece.name = "bQueen";
-                piece.SetPiece();
-            }
-            SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY);
-        }
-        if (index % 2 == 0)
-        {
-            playerToplay = "white";
-        }
-        else
-        {
-            playerToplay = "black";
-        }
+        //         piece.name = "wQueen";
+        //         piece.SetPiece();
+        //     }
+        //     else if (piece.name == "bQueen" && movesPlayed[i].goalY == 0)
+        //     {
+        //         piece.name = "bQueen";
+        //         piece.SetPiece();
+        //     }
+        //     SetPosition(piece, movesPlayed[i].goalX, movesPlayed[i].goalY);
+        // }
+        // if (index % 2 == 0)
+        // {
+        //     playerToplay = "white";
+        // }
+        // else
+        // {
+        //     playerToplay = "black";
+        // }
     }
     public void replayNextMove()
     {
-        destroyPieces();
-        fromFenToBoard(Fens[replayMoveIndex]);
-        replayMoveIndex++;
+        if (replayMoveIndex < Fens.Count)
+        {
+            destroyPieces();
+            highlightMove(replayMoveIndex);
+            if (replayMoveIndex > 0)
+            {
+                resetMove(replayMoveIndex - 1);
+            }
+            replayMoveIndex++;
+            fromFenToBoard(Fens[replayMoveIndex]);
+
+        }
         // if (replayMoveIndex < movesPlayed.Count)
         // {
         //     int i = replayMoveIndex;
@@ -1124,8 +1151,16 @@ public class Grid : MonoBehaviour
     {
         if (replayMoveIndex > 0)
         {
-            replayNumMoves(replayMoveIndex - 1);
+            // replayNumMoves(replayMoveIndex - 1);
             //replayMoveIndex--;
+            destroyPieces();
+            replayMoveIndex--;
+            if (replayMoveIndex < movesPlayed.Count - 1)
+            {
+                resetMove(replayMoveIndex);
+            }
+            highlightMove(replayMoveIndex - 1);
+            fromFenToBoard(Fens[replayMoveIndex]);
         }
 
     }
@@ -1409,11 +1444,11 @@ public class Grid : MonoBehaviour
                     string type = getPieceType(char.ToLower(fenChar));
                     string piece = player + type;
                     Piece newPiece = CreatePiece(piece, col, row);
-                    if (piece == "wPawn" && col != 1)
+                    if (piece == "wPawn" && row != 1)
                     {
                         newPiece.setHasMoved(true);
                     }
-                    else if (piece == "bPawn" && col != height - 2)
+                    else if (piece == "bPawn" && row != height - 2)
                     {
                         newPiece.setHasMoved(true);
                     }
@@ -1437,6 +1472,7 @@ public class Grid : MonoBehaviour
             default: throw new ArgumentException($"Invalid FEN character: {fenChar}");
         }
     }
+    int highlightedMove = -1;
     public void destroyPieces()
     {
         GameObject[] pieces = GameObject.FindGameObjectsWithTag("Piece");
@@ -1445,5 +1481,17 @@ public class Grid : MonoBehaviour
         {
             Destroy(pieces[i]);
         }
+    }
+    public void highlightMove(int index)
+    {
+        ReplayMove move = GameObject.Find($"Move {index}").GetComponent<ReplayMove>();
+        highlightedMove = index;
+        move.boldText();
+    }
+    public void resetMove(int index)
+    {
+        ReplayMove move = GameObject.Find($"Move {index}").GetComponent<ReplayMove>();
+        highlightedMove = index;
+        move.resetStyle();
     }
 }
