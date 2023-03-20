@@ -8,8 +8,10 @@ public class GameUI : MonoBehaviour
     public static GameUI Instance { set; get; }
     [SerializeField] private Server server;
     [SerializeField] private Client client;
-
-    public GameObject controller;
+    [SerializeField] private GameObject nextButton;
+    [SerializeField] private GameObject prevButton;
+    [SerializeField] private GameObject scrollArea;
+    private GameObject controller;
     // Start is called before the first frame update
     void Start()
     {
@@ -22,10 +24,22 @@ public class GameUI : MonoBehaviour
     }
 
     // Button presses
-     public void replayGamePress()
+    public void replayGamePress()
     {
-        menuAnimator.SetTrigger("NoMenu");
+        //menuAnimator.SetTrigger("NoMenu");
+        menuAnimator.SetTrigger("replayGame");
+        // nextButton.SetActive(true);
+        // prevButton.SetActive(true);
+        // scrollArea.SetActive(true);
         controller.GetComponent<Grid>().replayGame();
+    }
+    public void replayGameMainMenuPress()
+    {
+        menuAnimator.SetTrigger("MainMenu");
+        // nextButton.SetActive(true);
+        // prevButton.SetActive(true);
+        // scrollArea.SetActive(true);
+        controller.GetComponent<Grid>().destroyAssets();
     }
     public void gameOverMainMenuPress()
     {

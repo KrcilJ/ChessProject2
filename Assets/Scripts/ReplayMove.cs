@@ -52,4 +52,14 @@ public class ReplayMove : MonoBehaviour
         grid.replayNumMoves(index + 1);
 
     }
+    public void boldText()
+    {
+        TextMeshProUGUI mText = GetComponent<TextMeshProUGUI>();
+        mText.fontStyle = FontStyles.Underline;
+    }
+    public void resetStyle()
+    {
+        TextMeshProUGUI mText = GetComponent<TextMeshProUGUI>();
+        mText.fontStyle = FontStyles.Normal;
+    }
 }
