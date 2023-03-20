@@ -319,7 +319,11 @@ public class Grid : MonoBehaviour
                 //Just check this if the player is on their turn as the function also checks for checks
                 if (piece.GetPlayer() == getPlayerToPlay())
                 {
-                    canCastle(piece);
+                    if (!replayingGame)
+                    {
+                        canCastle(piece);
+                    }
+
                     if (castleLong)
                     {
                         createIndicator(x - 2, y, piece);
@@ -522,7 +526,6 @@ public class Grid : MonoBehaviour
     public bool isInCheck(string player)
     {
         Vector3 kingPos = findKing(player);
-        //Debug.Log(kingPos);
         for (int i = 0; i < moves.Count; i++)
         {
             if (moves[i] == kingPos)
@@ -561,7 +564,7 @@ public class Grid : MonoBehaviour
             Move2 checkMove = movesPlayed[movesPlayed.Count - 1];
             checkMove.check = true;
             movesPlayed[movesPlayed.Count - 1] = checkMove;
-            Debug.Log(movesPlayed[movesPlayed.Count - 1].check);
+            //Debug.Log(movesPlayed[movesPlayed.Count - 1].check);
             if (piece.name == "wKing" || piece.name == "bKing")
             {
                 myMoves.RemoveAt(myMoves.Count - 1);
@@ -675,7 +678,7 @@ public class Grid : MonoBehaviour
                 //Try to find the move which would make castling legal
                 for (int i = 0; i < legalMoves.Count; i++)
                 {
-                    Debug.Log("Legal move" + i + legalMoves[i]);
+                    // Debug.Log("Legal move" + i + legalMoves[i]);
                     if (legalMoves[i] == moveToFind)
                     {
                         Debug.Log("Found Castle move" + legalMoves[i]);
@@ -1059,7 +1062,6 @@ public class Grid : MonoBehaviour
             Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
             piece.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -1);
             Piece pieceAtPos = positions[movesPlayed[i].goalX, movesPlayed[i].goalY];
-            // Debug.Log(pieceAtPos);
             if (pieceAtPos != null)
             {
                 pieceAtPos.transform.position = new Vector3(movesPlayed[i].goalX, movesPlayed[i].goalY, -100); ;
@@ -1374,11 +1376,21 @@ public class Grid : MonoBehaviour
 
     public void fromFenToBoard(string FEN)
     {
-        int x = 7;
-        int y = 0;
         //Split the board part from the rest
-        var fenParts = FEN.Split(' ');
-        var fenRows = fenParts[0].Split('/');
+        string[] fenParts = FEN.Split(' ');
+        string[] fenRows = fenParts[0].Split('/');
+
+        playerToplay = fenParts[1] == "w" ? "white" : "black";
+        if (playerToplay == "white")
+        {
+            castleShort = fenParts[2].Contains("K");
+            castleLong = fenParts[2].Contains("Q");
+        }
+        else
+        {
+            castleShort = fenParts[3].Contains("k");
+            castleLong = fenParts[3].Contains("q");
+        }
 
         for (int row = 0; row < 8; row++)
         {
@@ -1396,7 +1408,16 @@ public class Grid : MonoBehaviour
                     var player = char.IsUpper(fenChar) ? "w" : "b";
                     string type = getPieceType(char.ToLower(fenChar));
                     string piece = player + type;
-                    CreatePiece(piece, col, row);
+                    Piece newPiece = CreatePiece(piece, col, row);
+                    if (piece == "wPawn" && col != 1)
+                    {
+                        newPiece.setHasMoved(true);
+                    }
+                    else if (piece == "bPawn" && col != height - 2)
+                    {
+                        newPiece.setHasMoved(true);
+                    }
+                    positions[col, row] = newPiece;
                     col++;
                 }
             }
