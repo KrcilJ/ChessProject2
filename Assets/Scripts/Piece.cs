@@ -181,7 +181,11 @@ public class Piece : MonoBehaviour
                 //if the movec was legal change the position of the piece to the position of the square it is moving to
                 rectTransform.position = hitInfo.transform.position;
                 //Handle queen promotion
-
+                if (grid.getReplaingGame())
+                {
+                    grid.destroyMoves(grid.getReplayMoveIndex());
+                    grid.setReplaingGame(false);
+                }
                 bool castleShort = grid.getCastleShort();
                 bool castleLong = grid.getCastleLong();
 
@@ -190,6 +194,10 @@ public class Piece : MonoBehaviour
                 setHasMoved(true);
 
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+                if (grid.getReplayMoveIndex() != 0 && !(castleLong || castleShort))
+                {
+                    grid.generatePlayedMoves(grid.getNumMoves() - 1);
+                }
                 if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
                 {
 
@@ -208,6 +216,10 @@ public class Piece : MonoBehaviour
                     rook.rectTransform.position = new Vector3(rectTransform.position.x + 1, rectTransform.position.y, -1);
                     grid.SetPosition(rook, (int)rectTransform.position.x + 1, (int)rectTransform.position.y);
                     grid.setcastleLong(false);
+                    if (grid.getReplayMoveIndex() != 0)
+                    {
+                        grid.generatePlayedMoves(grid.getNumMoves() - 2);
+                    }
                 }
                 if (castleShort && (int)rectTransform.position.x == x + 2)
                 {
@@ -215,12 +227,19 @@ public class Piece : MonoBehaviour
                     rook.rectTransform.position = new Vector3(rectTransform.position.x - 1, rectTransform.position.y, -1);
                     grid.SetPosition(rook, (int)rectTransform.position.x - 1, (int)rectTransform.position.y);
                     grid.setCastleShort(false);
+                    if (grid.getReplayMoveIndex() != 0)
+                    {
+                        grid.generatePlayedMoves(grid.getNumMoves() - 2);
+                    }
                 }
 
 
                 //Check if the move en passant, if it was destroy the pawn behind the en passant move
+                x = this.GetX();
+                y = this.GetY();
                 if (grid.getenPassantWhite() && grid.getPosition(x, y - 1) != null)
                 {
+
                     Destroy(grid.getPosition(x, y - 1).gameObject);
                     if (!grid.getOnlineGame())
                     {
@@ -253,12 +272,21 @@ public class Piece : MonoBehaviour
             //Logic for when we are taking a piece
             if (takePiece && grid.getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer())
             {
+                if (grid.getReplaingGame())
+                {
+                    grid.destroyMoves(grid.getReplayMoveIndex());
+                    grid.setReplaingGame(false);
+                }
                 //move the piece to the square
                 rectTransform.position = hitInfo.transform.position;
                 setHasMoved(true);
                 //Destroy the piece that was on the square
                 Destroy(hitInfo.transform.gameObject);
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+                if (grid.getReplayMoveIndex() != 0)
+                {
+                    grid.generatePlayedMoves(grid.getNumMoves() - 1);
+                }
                 if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
                 {
 
@@ -281,6 +309,7 @@ public class Piece : MonoBehaviour
                 {
                     grid.setPlayerToPlay("white");
                 }
+
             }
             //Otherwise return the piece to its original position
             else
@@ -299,6 +328,7 @@ public class Piece : MonoBehaviour
                 this.name = "bQueen";
                 SetPiece();
             }
+
         }
         //Otherwise return the piece to its original position
         else

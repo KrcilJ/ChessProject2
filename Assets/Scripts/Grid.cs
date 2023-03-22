@@ -73,6 +73,7 @@ public class Grid : MonoBehaviour
     List<string> Fens = new List<string>();
     void Awake()
     {
+        Fens.Add(startingFEN);
 
         registerEvents();
         positions = new Piece[width, height];
@@ -129,7 +130,7 @@ public class Grid : MonoBehaviour
         //     positions[playerBlack[i].GetX(), playerBlack[i].GetY()] = playerBlack[i];
         // }
         fromFenToBoard(startingFEN);
-        Fens.Add(startingFEN);
+
         //Rotate the camera based on what player should be on the bottom
         if (currentPlayer == 1)
         {
@@ -745,23 +746,49 @@ public class Grid : MonoBehaviour
 
         return true;
     }
-    public void generatePlayedMoves()
+    public void generatePlayedMoves(int index)
     {
+        Debug.Log($"INDEX {index}");
+        // for (int i = 0; i < movesPlayed.Count; i++)
+        // {
+        //     Debug.Log(movesPlayed[i].pieceName);
+        // }
+        for (int i = 0; i < Fens.Count; i++)
+        {
+            Debug.Log(Fens[i]);
+        }
         int moveIndex = 1;
         Move2 move;
-        for (int i = 0; i < movesPlayed.Count; i++)
+        for (int i = index; i < movesPlayed.Count; i++)
 
         {
-            string text = $"{moveIndex} ";
+
+            string text = $"{(i + 2) / 2} ";
             moveIndex++;
             string notation = convertNotation(movesPlayed[i]);
             if (notation == "O-O" || notation == "O-O-O")
             {
-                Fens.RemoveAt(i);
+
+
+                movesPlayed.RemoveAt(i + 1);
                 move = movesPlayed[i];
                 move.castle = true;
                 movesPlayed[i] = move;
-                i++;
+
+                if (index == 0)
+                {
+                    Fens.RemoveAt(i + 1);
+                }
+                else
+                {
+                    Fens.RemoveAt(Fens.Count - 2);
+                }
+                Debug.Log($"INDEX {index}");
+                for (int j = 0; j < Fens.Count; j++)
+                {
+                    Debug.Log(Fens[j]);
+                }
+                Debug.Log($"INDEX {index}");
             }
             text += notation;
             replayMove.generateReplayMove(text, i);
@@ -773,10 +800,21 @@ public class Grid : MonoBehaviour
             notation = convertNotation(movesPlayed[i]);
             if (notation == "O-O" || notation == "O-O-O")
             {
+                movesPlayed.RemoveAt(i + 1);
+
                 move = movesPlayed[i];
                 move.castle = true;
                 movesPlayed[i] = move;
-                i++;
+
+                if (index == 0)
+                {
+                    Fens.RemoveAt(i + 1);
+                }
+                else
+                {
+                    Fens.RemoveAt(Fens.Count - 2);
+                }
+
             }
             replayMove.generateReplayMove(notation, i);
         }
@@ -792,7 +830,7 @@ public class Grid : MonoBehaviour
             Piece initialRookPos = positions[kingX - 4, kingY];
 
             if (initialRookPos != null && (positions[kingX - 1, kingY] == null && positions[kingX - 2, kingY] == null
-            && positions[kingX - 3, kingY] == null && initialRookPos.getHasMoved() == false && (initialRookPos.name == "wRook" || initialRookPos.name == "bRook")))
+            && positions[kingX - 3, kingY] == null && initialRookPos?.getHasMoved() == false && (initialRookPos?.name == "wRook" || initialRookPos?.name == "bRook")))
             {
                 for (int i = 0; i < moves.Count; i++)
                 {
@@ -812,8 +850,8 @@ public class Grid : MonoBehaviour
             {
                 castleLong = false;
             }
-            if (positions[kingX + 3, kingY] != null && (positions[kingX + 1, kingY] == null && positions[kingX + 2, kingY] == null && positions[kingX + 3, kingY].getHasMoved() == false
-                && (positions[kingX + 3, kingY].name == "wRook" || positions[kingX + 3, kingY].name == "bRook")))
+            if (positions[kingX + 3, kingY] != null && (positions[kingX + 1, kingY] == null && positions[kingX + 2, kingY] == null && positions[kingX + 3, kingY]?.getHasMoved() == false
+                && (positions[kingX + 3, kingY]?.name == "wRook" || positions[kingX + 3, kingY]?.name == "bRook")))
             {
                 for (int i = 0; i < moves.Count; i++)
                 {
@@ -911,7 +949,18 @@ public class Grid : MonoBehaviour
     {
         replayingGame = value;
     }
-
+    public bool getReplaingGame()
+    {
+        return replayingGame;
+    }
+    public int getReplayMoveIndex()
+    {
+        return replayMoveIndex;
+    }
+    public int getNumMoves()
+    {
+        return movesPlayed.Count;
+    }
     //Register for online messages
     private void registerEvents()
     {
@@ -1060,11 +1109,7 @@ public class Grid : MonoBehaviour
         destroyAssets();
         startGame();
         replayingGame = true;
-        generatePlayedMoves();
-        for (int i = 0; i < Fens.Count - 1; i++)
-        {
-            Debug.Log(Fens[i]);
-        }
+        generatePlayedMoves(0);
         //Show a back and forward button
 
     }
@@ -1072,9 +1117,16 @@ public class Grid : MonoBehaviour
     {
         // destroyAssets();
         // startGame();
-        replayMoveIndex = index - 1;
+        replayingGame = true;
+        replayMoveIndex = index;
+        DestroyIndicators();
         destroyPieces();
         fromFenToBoard(Fens[replayMoveIndex]);
+        if (replayMoveIndex > 0)
+        {
+            resetMove(highlightedMove);
+        }
+        highlightMove(replayMoveIndex - 1);
         // for (int i = 0; i < index; i++)
         // {
         //     Piece piece = getPosition(movesPlayed[i].originalX, movesPlayed[i].originalY);
@@ -1108,14 +1160,17 @@ public class Grid : MonoBehaviour
     }
     public void replayNextMove()
     {
+
         if (replayMoveIndex < Fens.Count)
         {
+            replayingGame = true;
             destroyPieces();
-            highlightMove(replayMoveIndex);
+            DestroyIndicators();
             if (replayMoveIndex > 0)
             {
-                resetMove(replayMoveIndex - 1);
+                resetMove(highlightedMove);
             }
+            highlightMove(replayMoveIndex);
             replayMoveIndex++;
             fromFenToBoard(Fens[replayMoveIndex]);
 
@@ -1151,15 +1206,21 @@ public class Grid : MonoBehaviour
     {
         if (replayMoveIndex > 0)
         {
+            replayingGame = true;
+            DestroyIndicators();
             // replayNumMoves(replayMoveIndex - 1);
             //replayMoveIndex--;
             destroyPieces();
             replayMoveIndex--;
-            if (replayMoveIndex < movesPlayed.Count - 1)
+            if (replayMoveIndex < movesPlayed.Count)
             {
-                resetMove(replayMoveIndex);
+                resetMove(highlightedMove);
             }
-            highlightMove(replayMoveIndex - 1);
+            if (replayMoveIndex != 0)
+            {
+                highlightMove(replayMoveIndex - 1);
+            }
+
             fromFenToBoard(Fens[replayMoveIndex]);
         }
 
@@ -1452,6 +1513,28 @@ public class Grid : MonoBehaviour
                     {
                         newPiece.setHasMoved(true);
                     }
+                    else if (piece == "bKing")
+                    {
+                        for (int i = 0; i < movesPlayed.Count; i++)
+                        {
+                            if (movesPlayed[i].pieceName == "bKing")
+                            {
+                                newPiece.setHasMoved(true);
+                                break;
+                            }
+                        }
+                    }
+                    else if (piece == "wKing")
+                    {
+                        for (int i = 0; i < movesPlayed.Count; i++)
+                        {
+                            if (movesPlayed[i].pieceName == "wKing")
+                            {
+                                newPiece.setHasMoved(true);
+                                break;
+                            }
+                        }
+                    }
                     positions[col, row] = newPiece;
                     col++;
                 }
@@ -1484,14 +1567,39 @@ public class Grid : MonoBehaviour
     }
     public void highlightMove(int index)
     {
-        ReplayMove move = GameObject.Find($"Move {index}").GetComponent<ReplayMove>();
+        ReplayMove move = GameObject.Find($"Move {index}")?.GetComponent<ReplayMove>();
         highlightedMove = index;
-        move.boldText();
+        move?.boldText();
     }
     public void resetMove(int index)
     {
-        ReplayMove move = GameObject.Find($"Move {index}").GetComponent<ReplayMove>();
-        highlightedMove = index;
-        move.resetStyle();
+        ReplayMove move = GameObject.Find($"Move {index}")?.GetComponent<ReplayMove>();
+        move?.resetStyle();
+    }
+    public void destroyMoves(int index)
+    {
+        for (int i = index; i <= movesPlayed.Count + 1; i++)
+        {
+            // movesPlayed?.RemoveAt(i);
+            GameObject move = GameObject.Find($"Move {i}");
+            Destroy(move);
+        }
+        Debug.Log("Removeing");
+
+        for (int i = index - 1; i < movesPlayed.Count; i++)
+        {
+
+            movesPlayed.RemoveAt(i);
+
+        }
+        for (int i = 0; i < movesPlayed.Count; i++)
+        {
+            Debug.Log(movesPlayed[i].pieceName);
+        }
+        for (int i = Fens.Count - 1; i > index; i--)
+        {
+            Fens.RemoveAt(i);
+
+        }
     }
 }
