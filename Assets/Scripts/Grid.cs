@@ -65,7 +65,7 @@ public class Grid : MonoBehaviour
     }
 
     private bool replayingGame = false;
-    Move lastmove;
+    private Move lastmove;
     List<Move2> movesPlayed = new List<Move2>();
     private bool startAsBlack = false;
     private bool startAsWhite = false;
@@ -171,7 +171,10 @@ public class Grid : MonoBehaviour
 
         cam.transform.position = new Vector3(width / 2f - 0.5f, height / 2f - 0.5f, -10); //Move the camera to the middle of the screen
     }
-
+    public void nullPosition(int x, int y)
+    {
+        positions[x, y] = null;
+    }
     //Set the position of the piece so the program knows where a piece has moved
     public void SetPosition(Piece piece, int x, int y)
     {
@@ -211,10 +214,10 @@ public class Grid : MonoBehaviour
         positions[piece.GetX(), piece.GetY()] = null;
         piece.SetX(x);
         piece.SetY(y);
-        if (!replayingGame)
-        {
-            Fens.Add(convertToFen());
-        }
+        // if (!replayingGame)
+        // {
+        //     Fens.Add(convertToFen());
+        // }
         //Send a message with the move to the other player
         if (onlineGame)
         {
@@ -323,9 +326,9 @@ public class Grid : MonoBehaviour
                 {
                     if (!replayingGame)
                     {
-                        canCastle(piece);
-                    }
 
+                    }
+                    canCastle(piece);
                     if (castleLong)
                     {
                         createIndicator(x - 2, y, piece);
@@ -566,7 +569,7 @@ public class Grid : MonoBehaviour
             Move2 checkMove = movesPlayed[movesPlayed.Count - 1];
             checkMove.check = true;
             movesPlayed[movesPlayed.Count - 1] = checkMove;
-            //Debug.Log(movesPlayed[movesPlayed.Count - 1].check);
+            Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
             if (piece.name == "wKing" || piece.name == "bKing")
             {
                 myMoves.RemoveAt(myMoves.Count - 1);
@@ -746,6 +749,7 @@ public class Grid : MonoBehaviour
 
         return true;
     }
+    private int moveNuber = 0;
     public void generatePlayedMoves(int index)
     {
         Debug.Log($"INDEX {index}");
@@ -753,17 +757,17 @@ public class Grid : MonoBehaviour
         // {
         //     Debug.Log(movesPlayed[i].pieceName);
         // }
-        for (int i = 0; i < Fens.Count; i++)
-        {
-            Debug.Log(Fens[i]);
-        }
+        // for (int i = 0; i < Fens.Count; i++)
+        // {
+        //     Debug.Log(Fens[i]);
+        // }
         int moveIndex = 1;
         Move2 move;
         for (int i = index; i < movesPlayed.Count; i++)
 
         {
 
-            string text = $"{(i + 2) / 2} ";
+            string text = $"{moveNuber + 1} ";
             moveIndex++;
             string notation = convertNotation(movesPlayed[i]);
             if (notation == "O-O" || notation == "O-O-O")
@@ -775,23 +779,31 @@ public class Grid : MonoBehaviour
                 move.castle = true;
                 movesPlayed[i] = move;
 
-                if (index == 0)
-                {
-                    Fens.RemoveAt(i + 1);
-                }
-                else
-                {
-                    Fens.RemoveAt(Fens.Count - 2);
-                }
-                Debug.Log($"INDEX {index}");
-                for (int j = 0; j < Fens.Count; j++)
-                {
-                    Debug.Log(Fens[j]);
-                }
-                Debug.Log($"INDEX {index}");
+                // if (index == 0)
+                // {
+                //     Fens.RemoveAt(i + 1);
+                // }
+                // else
+                // {
+                //     Fens.RemoveAt(Fens.Count - 2);
+                // }
+                // Debug.Log($"INDEX {index}");
+                // for (int j = 0; j < Fens.Count; j++)
+                // {
+                //     Debug.Log(Fens[j]);
+                // }
+                // Debug.Log($"INDEX {index}");
             }
-            text += notation;
-            replayMove.generateReplayMove(text, i);
+            if (moveNuber % 2 != 0)
+            {
+                text = notation;
+            }
+            else
+            {
+                text += notation;
+            }
+
+            replayMove.generateReplayMove(text, moveNuber++);
             i++;
             if (i >= movesPlayed.Count)
             {
@@ -806,17 +818,17 @@ public class Grid : MonoBehaviour
                 move.castle = true;
                 movesPlayed[i] = move;
 
-                if (index == 0)
-                {
-                    Fens.RemoveAt(i + 1);
-                }
-                else
-                {
-                    Fens.RemoveAt(Fens.Count - 2);
-                }
+                // if (index == 0)
+                // {
+                //     Fens.RemoveAt(i + 1);
+                // }
+                // else
+                // {
+                //     Fens.RemoveAt(Fens.Count - 2);
+                // }
 
             }
-            replayMove.generateReplayMove(notation, i);
+            replayMove.generateReplayMove(notation, moveNuber++);
         }
     }
     //Check if its possible to castle (without checking if the king is in check)
@@ -960,6 +972,10 @@ public class Grid : MonoBehaviour
     public int getNumMoves()
     {
         return movesPlayed.Count;
+    }
+    public void addFEN()
+    {
+        Fens.Add(convertToFen());
     }
     //Register for online messages
     private void registerEvents()
@@ -1171,8 +1187,11 @@ public class Grid : MonoBehaviour
                 resetMove(highlightedMove);
             }
             highlightMove(replayMoveIndex);
+
+
             replayMoveIndex++;
             fromFenToBoard(Fens[replayMoveIndex]);
+
 
         }
         // if (replayMoveIndex < movesPlayed.Count)
@@ -1202,11 +1221,18 @@ public class Grid : MonoBehaviour
         //     }
         // }
     }
+    public void setLastMove()
+    {
+        lastmove.piece = positions[movesPlayed[replayMoveIndex - 1].goalX, movesPlayed[replayMoveIndex - 1].goalY];
+        lastmove.originalPos = new Vector2(movesPlayed[replayMoveIndex - 1].originalX, movesPlayed[replayMoveIndex - 1].originalY);
+        lastmove.currentPos = new Vector2(movesPlayed[replayMoveIndex - 1].goalX, movesPlayed[replayMoveIndex - 1].goalY);
+    }
     public void replayPrevMove()
     {
         if (replayMoveIndex > 0)
         {
             replayingGame = true;
+
             DestroyIndicators();
             // replayNumMoves(replayMoveIndex - 1);
             //replayMoveIndex--;
@@ -1528,8 +1554,10 @@ public class Grid : MonoBehaviour
                     {
                         for (int i = 0; i < movesPlayed.Count; i++)
                         {
+                            //Debug.Log(movesPlayed[i].pieceName);
                             if (movesPlayed[i].pieceName == "wKing")
                             {
+                                // Debug.Log("Setting the king to moved");
                                 newPiece.setHasMoved(true);
                                 break;
                             }
@@ -1584,22 +1612,29 @@ public class Grid : MonoBehaviour
             GameObject move = GameObject.Find($"Move {i}");
             Destroy(move);
         }
-        Debug.Log("Removeing");
+        //Debug.Log("Before removing");
+        // for (int i = 0; i < movesPlayed.Count; i++)
+        // {
+        //     Debug.Log(movesPlayed[i].pieceName);
+        // }
+        // Debug.Log("Removeing");
 
-        for (int i = index - 1; i < movesPlayed.Count; i++)
+        for (int i = index; i < movesPlayed.Count; i++)
         {
-
+            //Debug.Log("Removing move " + movesPlayed[i]);
             movesPlayed.RemoveAt(i);
 
         }
-        for (int i = 0; i < movesPlayed.Count; i++)
-        {
-            Debug.Log(movesPlayed[i].pieceName);
-        }
+        // for (int i = 0; i < movesPlayed.Count; i++)
+        // {
+        //     Debug.Log(movesPlayed[i].pieceName);
+        // }
         for (int i = Fens.Count - 1; i > index; i--)
         {
             Fens.RemoveAt(i);
 
         }
+
+        moveNuber = index;
     }
 }

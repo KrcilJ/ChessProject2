@@ -122,6 +122,10 @@ public class Piece : MonoBehaviour
 
         if (this != null)
         {
+            if (grid.getReplaingGame())
+            {
+                grid.setLastMove();
+            }
             //Generate the legal moves for the specific piece
             grid.GenerateIndicators(this);
             grid.legalMoves(this);
@@ -241,6 +245,7 @@ public class Piece : MonoBehaviour
                 {
 
                     Destroy(grid.getPosition(x, y - 1).gameObject);
+                    grid.nullPosition(x, y - 1);
                     if (!grid.getOnlineGame())
                     {
                         grid.setEnpassantWhite(false);
@@ -250,12 +255,13 @@ public class Piece : MonoBehaviour
                 if (grid.getenPassantBlack() && grid.getPosition(x, y + 1) != null)
                 {
                     Destroy(grid.getPosition(this.GetX(), y + 1).gameObject);
+                    grid.nullPosition(x, y + 1);
                     if (!grid.getOnlineGame())
                     {
                         grid.setEnpassantBlack(false);
                     }
                 }
-
+                grid.addFEN();
                 //Clean up
                 grid.clearMoves();
                 grid.DestroyIndicators();
@@ -298,7 +304,7 @@ public class Piece : MonoBehaviour
                     this.name = "bQueen";
                     SetPiece();
                 }
-
+                grid.addFEN();
                 grid.clearMoves();
                 grid.DestroyIndicators();
                 if (player == "white")
