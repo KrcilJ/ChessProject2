@@ -9,7 +9,7 @@ public class Grid : MonoBehaviour
     // Multiplayer logic
     private int currentPlayer = -1;
     private int numPlayers = -1;
-    private string computerPlayer = "black";
+    private string computerPlayer = null;
     private const int NUM_PIECES = 8;
     //where on the board should be pieces be placed
     private const int FIRST_PIECE_BX = 0;
@@ -31,7 +31,7 @@ public class Grid : MonoBehaviour
     [SerializeField] GameObject moveIndicator;
 
     //  [SerializeField] Camera camera;
-    private string playerToplay = "white";
+    private string playerToplay = null;
     private Piece[,] positions;
     private Piece[] playerBlack = new Piece[2 * NUM_PIECES];
     private Piece[] playerWhite = new Piece[2 * NUM_PIECES];
@@ -236,10 +236,7 @@ public class Grid : MonoBehaviour
             }
             Client.Instance.sendToServer(move);
         }
-        if (computerPlayer == "black" && playerToplay == "black")
-        {
 
-        }
     }
 
     private Piece CreatePiece(string name, int x, int y)
@@ -554,17 +551,7 @@ public class Grid : MonoBehaviour
 
         clearMoves();
         //Generate all possible moves for the enemy pieces - these will be now saved in the moves array
-        for (int i = 0; i < width; i++)
-        {
-            for (int k = 0; k < height; k++)
-            {
-                Piece a = positions[i, k];
-                if (a != null && a.GetPlayer() != playerToPlay)
-                {
-                    GenerateIndicators(a);
-                }
-            }
-        }
+        generateAllPseudoLegalMoves(piece.GetPlayer());
         Tile kingTile = null;
         //Set the king tile to red if the king is in check
         if (isInCheck(playerToPlay))
@@ -582,9 +569,9 @@ public class Grid : MonoBehaviour
             kingTile.tileRed();
         }
         //Save the original position of the piece we want to move
-        Vector2 originalPos = new Vector2();
-        originalPos.x = piece.GetX();
-        originalPos.y = piece.GetY();
+
+        int originalX = piece.GetX();
+        int originalY = piece.GetY();
         //Debug.Log("my moves");
         for (int j = 0; j < myMoves.Count; j++)
         {
@@ -606,21 +593,11 @@ public class Grid : MonoBehaviour
             }
             //Make the move on the board programatically (the board does not visually change)
             positions[(int)myMoves[j].x, (int)myMoves[j].y] = piece;
-            positions[(int)originalPos.x, (int)originalPos.y] = null;
+            positions[originalX, originalY] = null;
 
             clearMoves();
             //After the move has been made generate the moves of the opponent again
-            for (int i = 0; i < width; i++)
-            {
-                for (int k = 0; k < height; k++)
-                {
-                    Piece a = positions[i, k];
-                    if (a != null && a.GetPlayer() != playerToPlay)
-                    {
-                        GenerateIndicators(a);
-                    }
-                }
-            }
+            generateAllPseudoLegalMoves(piece.GetPlayer());
             //After the move has been made check if the king is still in check
             if (!isInCheck(playerToPlay))
             {
@@ -650,7 +627,7 @@ public class Grid : MonoBehaviour
                 positions[(int)myMoves[j].x, (int)myMoves[j].y] = null;
             }
             //Set the piece to its original position
-            positions[(int)originalPos.x, (int)originalPos.y] = piece;
+            positions[originalX, originalY] = piece;
             // if (legalMoves.Count == 0)
             // {
             //     moves = legalMoves;
@@ -979,6 +956,14 @@ public class Grid : MonoBehaviour
     public void addFEN()
     {
         Fens.Add(convertToFen());
+    }
+    public void setComputerPlayer(string player)
+    {
+        computerPlayer = player;
+    }
+    public string getComputerPlayer()
+    {
+        return computerPlayer;
     }
     //Register for online messages
     private void registerEvents()
@@ -1642,6 +1627,22 @@ public class Grid : MonoBehaviour
     }
 
     //=======AI================
+    public void generateAllPseudoLegalMoves(string player)
+    {
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int k = 0; k < height; k++)
+            {
+                Piece a = positions[i, k];
+                if (a != null && a.GetPlayer() != player)
+                {
+                    GenerateIndicators(a);
+                }
+            }
+        }
+
+    }
     public void generateAllLegalMoves(string player)
     {
         for (int i = 0; i < width; i++)
