@@ -9,7 +9,7 @@ public class Grid : MonoBehaviour
     // Multiplayer logic
     private int currentPlayer = -1;
     private int numPlayers = -1;
-
+    private string computerPlayer = "black";
     private const int NUM_PIECES = 8;
     //where on the board should be pieces be placed
     private const int FIRST_PIECE_BX = 0;
@@ -42,7 +42,7 @@ public class Grid : MonoBehaviour
     private bool castleShort = false;
     private bool enPassantWhite = false;
     private bool enPassantBlack = false;
-
+    List<Move> allLegalMoves = new List<Move>();
     //Structure to save information about a move
     public struct Move
     {
@@ -236,7 +236,10 @@ public class Grid : MonoBehaviour
             }
             Client.Instance.sendToServer(move);
         }
+        if (computerPlayer == "black" && playerToplay == "black")
+        {
 
+        }
     }
 
     private Piece CreatePiece(string name, int x, int y)
@@ -569,7 +572,7 @@ public class Grid : MonoBehaviour
             Move2 checkMove = movesPlayed[movesPlayed.Count - 1];
             checkMove.check = true;
             movesPlayed[movesPlayed.Count - 1] = checkMove;
-            Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
+            //Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
             if (piece.name == "wKing" || piece.name == "bKing")
             {
                 myMoves.RemoveAt(myMoves.Count - 1);
@@ -686,7 +689,7 @@ public class Grid : MonoBehaviour
                     // Debug.Log("Legal move" + i + legalMoves[i]);
                     if (legalMoves[i] == moveToFind)
                     {
-                        Debug.Log("Found Castle move" + legalMoves[i]);
+                        //Debug.Log("Found Castle move" + legalMoves[i]);
                         moveIndex = i;
                         break;
                     }
@@ -694,14 +697,14 @@ public class Grid : MonoBehaviour
                 //If the move is not found, remove the castling move from legal moves
                 if (moveIndex == -1)
                 {
-                    Debug.Log("move removed");
+                    //Debug.Log("move removed");
                     legalMoves.RemoveAt(legalMoves.Count - 1);
                 }
             }
         }
         else if ((piece.name == "wKing" || piece.name == "bKing") && ((lastMoveX == 6 && (lastMoveY == 0 || (lastMoveY == 7))) || (lastMoveX == 2 && (lastMoveY == 0 || lastMoveY == 7))) && (castleLong || castleShort))
         {
-            Debug.Log("move removed");
+            //Debug.Log("move removed");
             legalMoves.RemoveAt(legalMoves.Count - 1);
         }
         //Set the possible moves to the legal moves
@@ -1636,5 +1639,53 @@ public class Grid : MonoBehaviour
         }
 
         moveNuber = index;
+    }
+
+    //=======AI================
+    public void generateAllLegalMoves(string player)
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int k = 0; k < height; k++)
+            {
+                Piece a = positions[i, k];
+                if (a != null && a.GetPlayer() == player)
+                {
+                    GenerateIndicators(a);
+                    legalMoves(a);
+                    for (int j = 0; j < moves.Count; j++)
+                    {
+                        Move move;
+                        move.piece = a;
+                        move.currentPos = new Vector2(moves[j].x, moves[j].y);
+                        move.originalPos = new Vector2(a.GetX(), a.GetY());
+                        allLegalMoves.Add(move);
+                    }
+                    moves.Clear();
+                    leagalMoves.Clear();
+
+                }
+            }
+        }
+    }
+
+    public void playRandomMove()
+    {
+        Random rnd = new Random();
+        int num = rnd.Next(0, allLegalMoves.Count);
+        if (allLegalMoves.Count == 0)
+        {
+            GeneralPiece.gameOver("white", 1);
+            return;
+        }
+        if (positions[(int)allLegalMoves[num].currentPos.x, (int)allLegalMoves[num].currentPos.y] != null)
+        {
+            Destroy(positions[(int)allLegalMoves[num].currentPos.x, (int)allLegalMoves[num].currentPos.y].gameObject);
+        }
+        SetPosition(allLegalMoves[num].piece, (int)allLegalMoves[num].currentPos.x, (int)allLegalMoves[num].currentPos.y);
+        allLegalMoves[num].piece.setPieceToPos(new Vector3(allLegalMoves[num].currentPos.x, allLegalMoves[num].currentPos.y, -1));
+        allLegalMoves[num].piece.setHasMoved(true);
+        allLegalMoves.Clear();
+        playerToplay = "white";
     }
 }

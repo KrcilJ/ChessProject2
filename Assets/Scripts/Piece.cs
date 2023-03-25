@@ -179,7 +179,115 @@ public class Piece : MonoBehaviour
                     }
                 }
             }
+            // bool castleShort = false;
+            // bool castleLong = false;
+            // int x = 0, y = 0;
+            // if (legalMove || takePiece)
+            // {
+            //     //if the movec was legal change the position of the piece to the position of the square it is moving to
+            //     rectTransform.position = hitInfo.transform.position;
+            //     //Handle queen promotion
+            //     if (grid.getReplaingGame())
+            //     {
+            //         grid.destroyMoves(grid.getReplayMoveIndex());
+            //         grid.setReplaingGame(false);
+            //     }
+            //     castleShort = grid.getCastleShort();
+            //     castleLong = grid.getCastleLong();
 
+            //     x = this.GetX();
+            //     y = this.GetY();
+            //     setHasMoved(true);
+
+            //     grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+
+            //     handleQueenPromotion();
+            // }
+            // if (legalMove)
+            // {
+            //     if (grid.getReplayMoveIndex() != 0 && !(castleLong || castleShort))
+            //     {
+            //         grid.generatePlayedMoves(grid.getNumMoves() - 1);
+            //     }
+            //     //Check if the move was a castling move and move the corresponding rook if the was a castling move
+            //     if (castleLong && (int)rectTransform.position.x == x - 2)
+            //     {
+            //         handleCastling(x, y, false);
+            //         grid.setcastleLong(false);
+            //     }
+            //     if (castleShort && (int)rectTransform.position.x == x + 2)
+            //     {
+            //         handleCastling(x, y, true);
+            //         grid.setCastleShort(false);
+            //     }
+
+
+            //     //Check if the move en passant, if it was destroy the pawn behind the en passant move
+            //     x = this.GetX();
+            //     y = this.GetY();
+            //     if (grid.getenPassantWhite() && grid.getPosition(x, y - 1) != null)
+            //     {
+
+            //         Destroy(grid.getPosition(x, y - 1).gameObject);
+            //         grid.nullPosition(x, y - 1);
+            //         if (!grid.getOnlineGame())
+            //         {
+            //             grid.setEnpassantWhite(false);
+            //         }
+
+            //     }
+            //     else if (grid.getenPassantBlack() && grid.getPosition(x, y + 1) != null)
+            //     {
+            //         Destroy(grid.getPosition(this.GetX(), y + 1).gameObject);
+            //         grid.nullPosition(x, y + 1);
+            //         if (!grid.getOnlineGame())
+            //         {
+            //             grid.setEnpassantBlack(false);
+            //         }
+            //     }
+            //     grid.addFEN();
+            //     //Clean up
+            //     grid.clearMoves();
+            //     grid.DestroyIndicators();
+            //     if (player == "white")
+            //     {
+            //         grid.setPlayerToPlay("black");
+            //         grid.generateAllLegalMoves("black");
+            //         grid.playRandomMove();
+            //     }
+            //     else
+            //     {
+            //         grid.setPlayerToPlay("white");
+            //     }
+            // }
+
+            // //Logic for when we are taking a piece
+            // else if (takePiece && grid.getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer())
+            // {
+
+            //     //Destroy the piece that was on the square
+            //     Destroy(hitInfo.transform.gameObject);
+            //     grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+            //     if (grid.getReplayMoveIndex() != 0)
+            //     {
+            //         grid.generatePlayedMoves(grid.getNumMoves() - 1);
+            //     }
+            //     handleQueenPromotion();
+            //     grid.addFEN();
+            //     grid.clearMoves();
+            //     grid.DestroyIndicators();
+            //     if (player == "white")
+            //     {
+            //         grid.setPlayerToPlay("black");
+            //         grid.generateAllLegalMoves("black");
+            //         grid.playRandomMove();
+            //     }
+            //     else
+            //     {
+            //         grid.setPlayerToPlay("white");
+            //     }
+
+            // }
             if (legalMove)
             {
                 //if the movec was legal change the position of the piece to the position of the square it is moving to
@@ -268,6 +376,8 @@ public class Piece : MonoBehaviour
                 if (player == "white")
                 {
                     grid.setPlayerToPlay("black");
+                    grid.generateAllLegalMoves("black");
+                    grid.playRandomMove();
                 }
                 else
                 {
@@ -310,6 +420,9 @@ public class Piece : MonoBehaviour
                 if (player == "white")
                 {
                     grid.setPlayerToPlay("black");
+                    grid.generateAllLegalMoves("black");
+                    grid.playRandomMove();
+
                 }
                 else
                 {
@@ -359,5 +472,46 @@ public class Piece : MonoBehaviour
     public bool getHasMoved()
     {
         return hasMoved;
+    }
+    public void setPieceToPos(Vector3 pos)
+    {
+
+
+        rectTransform.position = pos;
+    }
+
+    private void handleQueenPromotion()
+    {
+        if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
+        {
+
+            this.name = "wQueen";
+            SetPiece();
+        }
+        else if (this.name == "bPawn" && (int)rectTransform.position.y == 0)
+        {
+            this.name = "bQueen";
+            SetPiece();
+        }
+    }
+    private void handleCastling(int x, int y, bool shortCastle)
+    {
+        int rookPosX = x - 4;
+        int newRookPos = x + 1;
+
+        if (shortCastle)
+        {
+            rookPosX = x + 3;
+            newRookPos = x - 1;
+        }
+        Piece rook = grid.getPosition(rookPosX, y).GetComponent<Piece>();
+        rook.rectTransform.position = new Vector3(rectTransform.position.x - 1, rectTransform.position.y, -1);
+        grid.SetPosition(rook, newRookPos, (int)rectTransform.position.y);
+        if (grid.getReplayMoveIndex() != 0)
+        {
+            grid.generatePlayedMoves(grid.getNumMoves() - 2);
+        }
+
+
     }
 }
