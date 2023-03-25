@@ -310,11 +310,23 @@ public class Piece : MonoBehaviour
                 {
                     grid.generatePlayedMoves(grid.getNumMoves() - 1);
                 }
-                handleQueenPromotion();
+                if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
+                {
+
+                    this.name = "wQueen";
+                    SetPiece();
+                }
+                else if (this.name == "bPawn" && (int)rectTransform.position.y == 0)
+                {
+                    this.name = "bQueen";
+                    SetPiece();
+                }
                 //Check if the move was a castling move and move the corresponding rook if the was a castling move
                 if (castleLong && (int)rectTransform.position.x == x - 2)
                 {
-                    handleCastling(x, y, false);
+                    Piece rook = grid.getPosition(x - 4, y).GetComponent<Piece>();
+                    rook.rectTransform.position = new Vector3(rectTransform.position.x + 1, rectTransform.position.y, -1);
+                    grid.SetPosition(rook, (int)rectTransform.position.x + 1, (int)rectTransform.position.y);
                     grid.setcastleLong(false);
                     if (grid.getReplayMoveIndex() != 0)
                     {
@@ -323,7 +335,9 @@ public class Piece : MonoBehaviour
                 }
                 if (castleShort && (int)rectTransform.position.x == x + 2)
                 {
-                    handleCastling(x, y, true);
+                    Piece rook = grid.getPosition(x + 3, y).GetComponent<Piece>();
+                    rook.rectTransform.position = new Vector3(rectTransform.position.x - 1, rectTransform.position.y, -1);
+                    grid.SetPosition(rook, (int)rectTransform.position.x - 1, (int)rectTransform.position.y);
                     grid.setCastleShort(false);
                     if (grid.getReplayMoveIndex() != 0)
                     {
@@ -389,7 +403,17 @@ public class Piece : MonoBehaviour
                 {
                     grid.generatePlayedMoves(grid.getNumMoves() - 1);
                 }
-                handleQueenPromotion();
+                if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
+                {
+
+                    this.name = "wQueen";
+                    SetPiece();
+                }
+                else if (this.name == "bPawn" && (int)rectTransform.position.y == 0)
+                {
+                    this.name = "bQueen";
+                    SetPiece();
+                }
                 grid.addFEN();
                 grid.clearMoves();
                 grid.DestroyIndicators();
@@ -473,15 +497,15 @@ public class Piece : MonoBehaviour
     private void handleCastling(int x, int y, bool shortCastle)
     {
         int rookPosX = x - 4;
-        int newRookPos = (int)rectTransform.position.x + 1;
+        int newRookPos = x + 1;
 
         if (shortCastle)
         {
             rookPosX = x + 3;
-            newRookPos = (int)rectTransform.position.x - 1;
+            newRookPos = x - 1;
         }
         Piece rook = grid.getPosition(rookPosX, y).GetComponent<Piece>();
-        rook.rectTransform.position = new Vector3(newRookPos, rectTransform.position.y, -1);
+        rook.rectTransform.position = new Vector3(rectTransform.position.x - 1, rectTransform.position.y, -1);
         grid.SetPosition(rook, newRookPos, (int)rectTransform.position.y);
         if (grid.getReplayMoveIndex() != 0)
         {
@@ -490,5 +514,4 @@ public class Piece : MonoBehaviour
 
 
     }
-
 }
