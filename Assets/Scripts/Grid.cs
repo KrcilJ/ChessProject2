@@ -42,6 +42,12 @@ public class Grid : MonoBehaviour
     private bool castleShort = false;
     private bool enPassantWhite = false;
     private bool enPassantBlack = false;
+
+    const int pawnValue = 100;
+    const int knightValue = 300;
+    const int bishopValue = 300;
+    const int rookValue = 500;
+    const int queenValue = 900;
     List<Move> allLegalMoves = new List<Move>();
     //Structure to save information about a move
     public struct Move
@@ -236,7 +242,7 @@ public class Grid : MonoBehaviour
             }
             Client.Instance.sendToServer(move);
         }
-
+        Debug.Log("Material" + countMaterial());
     }
 
     private Piece CreatePiece(string name, int x, int y)
@@ -1688,5 +1694,43 @@ public class Grid : MonoBehaviour
         allLegalMoves[num].piece.setHasMoved(true);
         allLegalMoves.Clear();
         playerToplay = "white";
+    }
+
+    public int countMaterial()
+    {
+        int material = 0;
+        for (int i = 0; i < width; i++)
+        {
+            for (int k = 0; k < height; k++)
+            {
+                Piece piece = positions[i, k];
+                if (piece != null)
+                {
+                    string pieceColor = piece.name.Substring(0, 1);
+                    int multiplayer = pieceColor == "b" ? -1 : 1;
+                    string pieceName = piece.name.Substring(1);
+                    switch (pieceName)
+                    {
+                        case "Pawn":
+                            material += multiplayer * pawnValue;
+                            break;
+                        case "Knight":
+                            material += multiplayer * knightValue;
+                            break;
+                        case "Bishop":
+                            material += multiplayer * bishopValue;
+                            break;
+                        case "Rook":
+                            material += multiplayer * rookValue;
+                            break;
+                        case "Queen":
+                            material += multiplayer * queenValue;
+                            break;
+
+                    }
+                }
+            }
+        }
+        return material;
     }
 }
