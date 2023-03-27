@@ -80,8 +80,11 @@ public class Piece : MonoBehaviour
     }
     void OnMouseDown()
     {
+
         player = GetPlayer();
         string playerToPlay = grid.getPlayerToPlay();
+
+
         int pTP;
         //Logic to not allow online players to move the other pieces when it is not their turn
         if (playerToPlay == "white")
@@ -106,6 +109,9 @@ public class Piece : MonoBehaviour
         }
         //Clean up
         grid.DestroyIndicators();
+        grid.clearMoves();
+        grid.generateAllLegalMoves(playerToPlay);
+        Debug.Log("LEgal moves " + grid.getLegalMovesCount());
         grid.clearMoves();
         //Set the offset from the piece to the mouse (this prevents snapping of the piece onto the mouse)
         offset = rectTransform.position - MouseWorldPosition();
@@ -472,8 +478,9 @@ public class Piece : MonoBehaviour
             grid.setPlayerToPlay("black");
             if (grid.getComputerPlayer() == "black")
             {
-                grid.generateAllLegalMoves("black");
-                grid.playRandomMove();
+                // grid.generateAllLegalMoves("black");
+                // grid.playRandomMove();
+                grid.playBestMove(grid.bestMove());
             }
         }
         else

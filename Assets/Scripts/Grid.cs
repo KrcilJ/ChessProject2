@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Networking.Transport;
 using Random = System.Random;
+using System.Text;
 
 public class Grid : MonoBehaviour
 {
@@ -36,7 +37,7 @@ public class Grid : MonoBehaviour
     private Piece[] playerBlack = new Piece[2 * NUM_PIECES];
     private Piece[] playerWhite = new Piece[2 * NUM_PIECES];
     List<Vector3> moves = new List<Vector3>();
-    List<Vector3> leagalMoves = new List<Vector3>();
+
     private string startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w -- --";
     private bool castleLong = false;
     private bool castleShort = false;
@@ -242,7 +243,33 @@ public class Grid : MonoBehaviour
             }
             Client.Instance.sendToServer(move);
         }
-        Debug.Log("Material" + countMaterial());
+        moves.Clear();
+        allLegalMoves.Clear();
+        generateAllLegalMoves(playerToplay);
+
+        List<Move> opponentMoves = new List<Move>(allLegalMoves);
+        Debug.Log(opponentMoves.Count);
+        // for (int i = 0; i < opponentMoves.Count; i++)
+        // {
+        //     Debug.Log(opponentMoves[i].currentPos);
+        // }
+
+        moves.Clear();
+        generateAllPseudoLegalMoves(playerToplay);
+        // for (int i = 0; i < moves.Count; i++)
+        // {
+        //     Debug.Log(opponentMoves[i].currentPos + " " + moves[i]);
+        //     Debug.Log(getPosition((int)opponentMoves[i].currentPos.x, (int)opponentMoves[i].currentPos.y) + " " + getPosition((int)moves[i].x, (int)moves[i].y));
+
+        // }
+        // for (int i = 0; i < opponentMoves.Count; i++)
+        // {
+        //     Debug.Log(opponentMoves[i].currentPos);
+        // }
+        Debug.Log(moves.Count);
+        allLegalMoves.Clear();
+        moves.Clear();
+        // Debug.Log("Material" + countMaterial());
     }
 
     private Piece CreatePiece(string name, int x, int y)
@@ -549,15 +576,20 @@ public class Grid : MonoBehaviour
 
     public void legalMoves(Piece piece)
     {
-        string playerToPlay = getPlayerToPlay();
-
+        string playerToPlay = piece.GetPlayer();
+        string enemyPlayer = playerToPlay == "white" ? "black" : "white";
         List<Vector3> legalMoves = new List<Vector3>();
+
         List<Vector3> myMoves = new List<Vector3>(moves); //save the current pieces possible moves
+
         Piece pieceToTake = null;
 
         clearMoves();
         //Generate all possible moves for the enemy pieces - these will be now saved in the moves array
-        generateAllPseudoLegalMoves(piece.GetPlayer());
+        generateAllPseudoLegalMoves(enemyPlayer);
+        // Debug.Log(convertToFen());
+        // Debug.Log($"Legal moves for {playerToPlay} with enemy {enemyPlayer} for {piece.name}");
+        // Debug.Log($"Number of legal moves for playerTOPLay {allLegalMoves.Count}");
         Tile kingTile = null;
         //Set the king tile to red if the king is in check
         if (isInCheck(playerToPlay))
@@ -566,10 +598,10 @@ public class Grid : MonoBehaviour
             checkMove.check = true;
             movesPlayed[movesPlayed.Count - 1] = checkMove;
             //Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
-            if (piece.name == "wKing" || piece.name == "bKing")
-            {
-                myMoves.RemoveAt(myMoves.Count - 1);
-            }
+            // if (piece.name == "wKing" || piece.name == "bKing")
+            // {
+            //     myMoves.RemoveAt(myMoves.Count - 1);
+            // }
             Vector3 kingPos = findKing(playerToplay);
             kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
             kingTile.tileRed();
@@ -578,7 +610,9 @@ public class Grid : MonoBehaviour
 
         int originalX = piece.GetX();
         int originalY = piece.GetY();
+        // Debug.Log($"Original X {originalX} and {originalY}");
         //Debug.Log("my moves");
+
         for (int j = 0; j < myMoves.Count; j++)
         {
             //Debug.Log(piece + " " + myMoves[j] + " " + myMoves.Count);
@@ -587,7 +621,7 @@ public class Grid : MonoBehaviour
             {
                 pieceToTake = positions[(int)myMoves[j].x, (int)myMoves[j].y];
             }
-            if (playerToPlay == "white" && enPassantWhite == true && piece.name == "wPawn" && j == myMoves.Count - 1)
+            else if (playerToPlay == "white" && enPassantWhite == true && piece.name == "wPawn" && j == myMoves.Count - 1)
             {
                 pieceToTake = positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y - 1];
                 positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y - 1] = null;
@@ -599,16 +633,24 @@ public class Grid : MonoBehaviour
             }
             //Make the move on the board programatically (the board does not visually change)
             positions[(int)myMoves[j].x, (int)myMoves[j].y] = piece;
+            // piece.SetX((int)myMoves[j].x);
+            // piece.SetY((int)myMoves[j].y);
             positions[originalX, originalY] = null;
 
             clearMoves();
             //After the move has been made generate the moves of the opponent again
-            generateAllPseudoLegalMoves(piece.GetPlayer());
+            generateAllPseudoLegalMoves(enemyPlayer);
+            //Debug.Log($"Number of pseudo legal moves for enemy {moves.Count}");
             //After the move has been made check if the king is still in check
             if (!isInCheck(playerToPlay))
             {
+                //Debug.Log("ADDING MOVE" + myMoves[j]);
                 legalMoves.Add(myMoves[j]); // if the king is not in check after the move make the move legal
             }
+            // else
+            // {
+            //     Debug.Log($"{playerToPlay}Would be in check removing move for piece {piece.name}");
+            // }
             //If a piece has been overwritten by the move set the piece back
             if (pieceToTake != null)
             {
@@ -634,6 +676,8 @@ public class Grid : MonoBehaviour
             }
             //Set the piece to its original position
             positions[originalX, originalY] = piece;
+            // piece.SetX(originalX);
+            // piece.SetY(originalY);
             // if (legalMoves.Count == 0)
             // {
             //     moves = legalMoves;
@@ -691,28 +735,216 @@ public class Grid : MonoBehaviour
             legalMoves.RemoveAt(legalMoves.Count - 1);
         }
         //Set the possible moves to the legal moves
-        moves = legalMoves;
-    }
+        clearMoves();
+        moves = new List<Vector3>(legalMoves);
+        // Debug.Log("LEgal moves call");
+        // for (int i = 0; i < moves.Count; i++)
+        // {
+        //     Debug.Log(moves[i]);
 
+
+        // }
+
+    }
+    // public void legalMoves(Piece piece)
+    // {
+    //     string playerToPlay = getPlayerToPlay();
+
+    //     List<Vector3> legalMoves = new List<Vector3>();
+    //     List<Vector3> myMoves = new List<Vector3>(moves); //save the current pieces possible moves
+    //     Piece pieceToTake = null;
+
+    //     clearMoves();
+    //     //Generate all possible moves for the enemy pieces - these will be now saved in the moves array
+    //     for (int i = 0; i < width; i++)
+    //     {
+    //         for (int k = 0; k < height; k++)
+    //         {
+    //             Piece a = positions[i, k];
+    //             if (a != null && a.GetPlayer() != playerToPlay)
+    //             {
+    //                 GenerateIndicators(a);
+    //             }
+    //         }
+    //     }
+    //     Tile kingTile = null;
+    //     //Set the king tile to red if the king is in check
+    //     if (isInCheck(playerToPlay))
+    //     {
+    //         Move2 checkMove = movesPlayed[movesPlayed.Count - 1];
+    //         checkMove.check = true;
+    //         movesPlayed[movesPlayed.Count - 1] = checkMove;
+    //         //Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
+    //         if (piece.name == "wKing" || piece.name == "bKing")
+    //         {
+    //             myMoves.RemoveAt(myMoves.Count - 1);
+    //         }
+    //         Vector3 kingPos = findKing(playerToplay);
+    //         kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
+    //         kingTile.tileRed();
+    //     }
+    //     //Save the original position of the piece we want to move
+    //     Vector2 originalPos = new Vector2();
+    //     originalPos.x = piece.GetX();
+    //     originalPos.y = piece.GetY();
+    //     //Debug.Log("my moves");
+    //     for (int j = 0; j < myMoves.Count; j++)
+    //     {
+    //         //Debug.Log(piece + " " + myMoves[j] + " " + myMoves.Count);
+    //         //if the move of the piece would take an enemy piece save that piece
+    //         if (positions[(int)myMoves[j].x, (int)myMoves[j].y] != null)
+    //         {
+    //             pieceToTake = positions[(int)myMoves[j].x, (int)myMoves[j].y];
+    //         }
+    //         if (playerToPlay == "white" && enPassantWhite == true && piece.name == "wPawn" && j == myMoves.Count - 1)
+    //         {
+    //             pieceToTake = positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y - 1];
+    //             positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y - 1] = null;
+    //         }
+    //         else if (playerToPlay == "black" && enPassantBlack == true && piece.name == "bPawn" && j == myMoves.Count - 1)
+    //         {
+    //             pieceToTake = positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y + 1];
+    //             positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y + 1] = null;
+    //         }
+    //         //Make the move on the board programatically (the board does not visually change)
+    //         positions[(int)myMoves[j].x, (int)myMoves[j].y] = piece;
+    //         positions[(int)originalPos.x, (int)originalPos.y] = null;
+
+    //         clearMoves();
+    //         //After the move has been made generate the moves of the opponent again
+    //         for (int i = 0; i < width; i++)
+    //         {
+    //             for (int k = 0; k < height; k++)
+    //             {
+    //                 Piece a = positions[i, k];
+    //                 if (a != null && a.GetPlayer() != playerToPlay)
+    //                 {
+    //                     GenerateIndicators(a);
+    //                 }
+    //             }
+    //         }
+    //         //After the move has been made check if the king is still in check
+    //         if (!isInCheck(playerToPlay))
+    //         {
+    //             legalMoves.Add(myMoves[j]); // if the king is not in check after the move make the move legal
+    //         }
+    //         //If a piece has been overwritten by the move set the piece back
+    //         if (pieceToTake != null)
+    //         {
+    //             if (playerToPlay == "white" && enPassantWhite == true && piece.name == "wPawn" && j == myMoves.Count - 1)
+    //             {
+    //                 positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y - 1] = pieceToTake;
+    //             }
+    //             else if (playerToPlay == "black" && enPassantBlack == true && piece.name == "bPawn" && j == myMoves.Count - 1)
+    //             {
+    //                 positions[(int)myMoves[myMoves.Count - 1].x, (int)myMoves[myMoves.Count - 1].y + 1] = pieceToTake;
+    //             }
+    //             else
+    //             {
+    //                 positions[(int)myMoves[j].x, (int)myMoves[j].y] = pieceToTake;
+    //             }
+
+    //             pieceToTake = null;
+    //         }
+    //         //if the move was on an empty square set the squere to null
+    //         else
+    //         {
+    //             positions[(int)myMoves[j].x, (int)myMoves[j].y] = null;
+    //         }
+    //         //Set the piece to its original position
+    //         positions[(int)originalPos.x, (int)originalPos.y] = piece;
+    //         // if (legalMoves.Count == 0)
+    //         // {
+    //         //     moves = legalMoves;
+    //         //     return;
+    //         // }
+    //     }
+
+    //     int lastMoveX = -1;
+    //     int lastMoveY = -1;
+
+    //     if (legalMoves.Count >= 1)
+    //     {
+    //         lastMoveX = (int)legalMoves[legalMoves.Count - 1].x;
+    //         lastMoveY = (int)legalMoves[legalMoves.Count - 1].y;
+    //     }
+    //     //Check if castling is legal (the king cannot go through check thus the tile next to him has to be a legal move for castling to be legal)
+    //     if ((piece.name == "wKing" || piece.name == "bKing") && legalMoves.Count >= 2)
+    //     {
+    //         if (((lastMoveX == 6 && (lastMoveY == 0 || lastMoveY == 7)) || (lastMoveX == 2 && (lastMoveY == 0 || lastMoveY == 7))) && (castleLong || castleShort))
+    //         {
+    //             int moveIndex = -1;
+    //             Vector3 moveToFind;
+    //             Vector3 castleMove1 = new Vector3(3, lastMoveY, -1);
+    //             Vector3 castleMove2 = new Vector3(5, lastMoveY, -1);
+    //             if (lastMoveX == 6)
+    //             {
+    //                 moveToFind = castleMove2;
+    //             }
+    //             else
+    //             {
+    //                 moveToFind = castleMove1;
+    //             }
+    //             //Try to find the move which would make castling legal
+    //             for (int i = 0; i < legalMoves.Count; i++)
+    //             {
+    //                 // Debug.Log("Legal move" + i + legalMoves[i]);
+    //                 if (legalMoves[i] == moveToFind)
+    //                 {
+    //                     //Debug.Log("Found Castle move" + legalMoves[i]);
+    //                     moveIndex = i;
+    //                     break;
+    //                 }
+    //             }
+    //             //If the move is not found, remove the castling move from legal moves
+    //             if (moveIndex == -1)
+    //             {
+    //                 //Debug.Log("move removed");
+    //                 legalMoves.RemoveAt(legalMoves.Count - 1);
+    //             }
+    //         }
+    //     }
+    //     else if ((piece.name == "wKing" || piece.name == "bKing") && ((lastMoveX == 6 && (lastMoveY == 0 || (lastMoveY == 7))) || (lastMoveX == 2 && (lastMoveY == 0 || lastMoveY == 7))) && (castleLong || castleShort))
+    //     {
+    //         //Debug.Log("move removed");
+    //         legalMoves.RemoveAt(legalMoves.Count - 1);
+    //     }
+    //     //Set the possible moves to the legal moves
+    //     moves = legalMoves;
+    // }
     //Check for checkmate by checking if a player has any legal moves
     public bool checkmate(string player)
     {
-        for (int i = 0; i < width; i++)
+
+        //Debug.Log("Checkamte func call");
+        // for (int i = 0; i < width; i++)
+        // {
+        //     for (int k = 0; k < height; k++)
+        //     {
+        //         Piece a = positions[i, k];
+        //         if (a != null && a.GetPlayer() == player)
+        //         {
+        //             moves.Clear();
+        //             GenerateIndicators(a);
+
+        //             legalMoves(a);
+
+        //             {
+        //                 //Debug.Log(i + "   " + k);
+        //                 clearMoves();
+        //                 return false;
+        //             }
+        //         }
+        //     }
+        // }
+        moves.Clear();
+        allLegalMoves.Clear();
+        generateAllLegalMoves(player);
+        if (allLegalMoves.Count != 0)
         {
-            for (int k = 0; k < height; k++)
-            {
-                Piece a = positions[i, k];
-                if (a != null && a.GetPlayer() == player)
-                {
-                    GenerateIndicators(a);
-                    legalMoves(a);
-                    if (moves.Count != 0)
-                    {
-                        clearMoves();
-                        return false;
-                    }
-                }
-            }
+            moves.Clear();
+            allLegalMoves.Clear();
+            return false;
         }
         //If the game is online send a message to the other player
         if (onlineGame)
@@ -732,7 +964,8 @@ public class Grid : MonoBehaviour
         Move2 move = movesPlayed[movesPlayed.Count - 1];
         move.checkmate = true;
         movesPlayed[movesPlayed.Count - 1] = move;
-
+        moves.Clear();
+        allLegalMoves.Clear();
         return true;
     }
     private int moveNuber = 0;
@@ -970,6 +1203,13 @@ public class Grid : MonoBehaviour
     public string getComputerPlayer()
     {
         return computerPlayer;
+    }
+    public int getLegalMovesCount()
+    {
+        int count = allLegalMoves.Count;
+        allLegalMoves.Clear();
+        return count;
+
     }
     //Register for online messages
     private void registerEvents()
@@ -1641,7 +1881,7 @@ public class Grid : MonoBehaviour
             for (int k = 0; k < height; k++)
             {
                 Piece a = positions[i, k];
-                if (a != null && a.GetPlayer() != player)
+                if (a != null && a.GetPlayer() == player)
                 {
                     GenerateIndicators(a);
                 }
@@ -1651,17 +1891,23 @@ public class Grid : MonoBehaviour
     }
     public void generateAllLegalMoves(string player)
     {
+        allLegalMoves.Clear();
+        moves.Clear();
         for (int i = 0; i < width; i++)
         {
             for (int k = 0; k < height; k++)
             {
-                Piece a = positions[i, k];
+                Piece a = positions[k, i];
                 if (a != null && a.GetPlayer() == player)
                 {
                     GenerateIndicators(a);
+                    // Debug.Log($"{a.name} moves count " + moves.Count);
                     legalMoves(a);
+                    // Debug.Log($"{a.name}moves count " + moves.Count);
+                    // Debug.Log("ALL lEGAL MOVES CALL AFTE LEGAM MOVES");
                     for (int j = 0; j < moves.Count; j++)
                     {
+                        //Debug.Log(moves[j]);
                         Move move;
                         move.piece = a;
                         move.currentPos = new Vector2(moves[j].x, moves[j].y);
@@ -1669,8 +1915,6 @@ public class Grid : MonoBehaviour
                         allLegalMoves.Add(move);
                     }
                     moves.Clear();
-                    leagalMoves.Clear();
-
                 }
             }
         }
@@ -1732,5 +1976,197 @@ public class Grid : MonoBehaviour
             }
         }
         return material;
+    }
+
+    public Move bestMove()
+    {
+        allLegalMoves.Clear();
+        moves.Clear();
+        generateAllLegalMoves("black");
+        List<Move> blackMoves = new List<Move>(allLegalMoves);
+        //Debug.Log(blackMoves.Count);
+        Move bestMove = new Move();
+        int score = 0;
+        int opponentMinMaxScore = 999;
+        foreach (Move move in blackMoves)
+        {
+            //print("position before 2nd loop");
+            //print(convertToFen());
+            //Piece[,] boardBeforeMove = new Piece[positions.GetLength(0), positions.GetLength(1)];
+            //Array.Copy(positions, boardBeforeMove, positions.Length);
+            bool piece1Moved = positions[(int)move.originalPos.x, (int)move.originalPos.y].getHasMoved();
+            Piece pieceToTake1 = makeMove((int)move.originalPos.x, (int)move.originalPos.y, (int)move.currentPos.x, (int)move.currentPos.y);
+
+            allLegalMoves.Clear();
+            moves.Clear();
+            playerToplay = "white";
+            generateAllLegalMoves("white");
+
+            List<Move> opponentMoves = new List<Move>(allLegalMoves);
+            // Debug.Log(opponentMoves.Count);
+            int opponentMaxScore = -999;
+            foreach (Move enemyMove in opponentMoves)
+            {
+                //print("position before loop");
+                //print(convertToFen());
+                //print(getPosition((int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y).GetX() + " " + getPosition((int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y).GetY());
+                // Piece[,] boardBefore2ndMove = new Piece[positions.GetLength(0), positions.GetLength(1)];
+                // Array.Copy(positions, boardBefore2ndMove, positions.Length);
+                //print(getPosition((int)enemyMove.currentPos.x, (int)enemyMove.currentPos.y));
+                bool piece2Moved = positions[(int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y].getHasMoved();
+                Piece pieceToTake2 = makeMove((int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y, (int)enemyMove.currentPos.x, (int)enemyMove.currentPos.y);
+                // print(getPosition((int)enemyMove.currentPos.x, (int)enemyMove.currentPos.y));
+
+                // if ((int)enemyMove.currentPos.x == 5 && (int)enemyMove.currentPos.y == 6)
+                // {
+                //     print("Piece at 5,6");
+                //     print(getPosition((int)enemyMove.currentPos.x, (int)enemyMove.currentPos.y));
+                //     GenerateIndicators(getPosition((int)enemyMove.currentPos.x, (int)enemyMove.currentPos.y));
+                //     for (int i = 0; i < moves.Count; i++)
+                //     {
+                //         print(moves[i].x + "--" + moves[i].y);
+                //     }
+                //     Debug.Log(isInCheck("black"));
+                //     clearMoves();
+                // }
+
+                if (checkmate("black"))
+                {
+
+                    Debug.Log("black would be checkamted");
+                    Debug.Log(convertToFen());
+                    score = 9999;
+                }
+                else
+                {
+                    score = countMaterial();
+                }
+                allLegalMoves.Clear();
+                if (score > opponentMaxScore)
+                {
+                    opponentMaxScore = score;
+                }
+                //Array.Copy(boardBefore2ndMove, positions, positions.Length);
+                // getPosition((int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y).SetX((int)enemyMove.originalPos.x);
+                // getPosition((int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y).SetY((int)enemyMove.originalPos.y);
+                unMakeMove(pieceToTake2, piece2Moved, (int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y, (int)enemyMove.currentPos.x, (int)enemyMove.currentPos.y);
+                //print("position after loop");
+                //print(convertToFen());
+                //print(getPosition((int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y).GetX() + " " + getPosition((int)enemyMove.originalPos.x, (int)enemyMove.originalPos.y).GetY());
+            }
+            if (opponentMaxScore < opponentMinMaxScore)
+            {
+                opponentMinMaxScore = opponentMaxScore;
+                bestMove = move;
+            }
+
+            // Array.Copy(boardBeforeMove, positions, positions.Length);
+            // getPosition((int)move.originalPos.x, (int)move.originalPos.y).SetX((int)move.originalPos.x);
+            // getPosition((int)move.originalPos.x, (int)move.originalPos.y).SetY((int)move.originalPos.y);
+            unMakeMove(pieceToTake1, piece1Moved, (int)move.originalPos.x, (int)move.originalPos.y, (int)move.currentPos.x, (int)move.currentPos.y);
+            // print("position after 2nd loop");
+            //print(convertToFen());
+        }
+        print("MinMaxscore " + opponentMinMaxScore);
+        return bestMove;
+    }
+    public Piece makeMove(int originalX, int originalY, int goalX, int goalY)
+    {
+        Piece pieceToTake = null;
+        string playerToPlay = getPlayerToPlay();
+        Piece piece = getPosition(originalX, originalY);
+        piece.SetX(goalX);
+        piece.SetY(goalY);
+        if (positions[goalX, goalY] != null)
+        {
+            pieceToTake = positions[goalX, goalY];
+        }
+        else if (playerToPlay == "white" && enPassantWhite == true && piece.name == "wPawn")
+        {
+            pieceToTake = positions[goalX, goalY - 1];
+            positions[goalX, goalY - 1] = null;
+        }
+        else if (playerToPlay == "black" && enPassantBlack == true && piece.name == "bPawn")
+        {
+            pieceToTake = positions[goalX, goalY + 1];
+            positions[goalX, goalY + 1] = null;
+        }
+        //Make the move on the board programatically (the board does not visually change)
+        positions[goalX, goalY] = piece;
+        positions[originalX, originalY] = null;
+
+        piece.setHasMoved(true);
+        return pieceToTake;
+    }
+    public void unMakeMove(Piece takenPiece, bool originalPieceMoved, int originalX, int originalY, int currentX, int currentY)
+    {
+        Piece piece = positions[currentX, currentY];
+        if (takenPiece != null)
+        {
+            positions[takenPiece.GetX(), takenPiece.GetY()] = takenPiece;
+        }
+        else
+        {
+            positions[currentX, currentY] = null;
+        }
+
+        positions[originalX, originalY] = piece;
+        piece.setHasMoved(originalPieceMoved);
+        piece.SetX(originalX);
+        piece.SetY(originalY);
+
+    }
+    public void playBestMove(Move move)
+    {
+        Piece pieceAtPos = positions[(int)move.currentPos.x, (int)move.currentPos.y];
+        SetPosition(move.piece, (int)move.currentPos.x, (int)move.currentPos.y);
+        if (pieceAtPos != null)
+        {
+            Destroy(pieceAtPos.gameObject);
+        }
+
+        move.piece.setPieceToPos(new Vector3(move.currentPos.x, move.currentPos.y, -1));
+        move.piece.setHasMoved(true);
+        playerToplay = "white";
+    }
+    //For debugging purposes
+    void PrintBoard(string fen)
+    {
+        string[] parts = fen.Split(' ');
+        string boardString = parts[0];
+        int rank = 8;
+        int file = 1;
+
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("  a b c d e f g h");
+        int i = 0;
+        while (i < boardString.Length)
+        {
+            char c = boardString[i];
+            if (c == '/')
+            {
+                sb.AppendLine();
+                i++;
+            }
+            else if (char.IsDigit(c))
+            {
+                int spaces = (int)Char.GetNumericValue(c);
+                //  for (int j = 0; j < spaces; j++)
+                //  {
+                sb.Append("- ");
+                //  }
+                i++;
+            }
+            else
+            {
+                sb.Append(c + " ");
+                i++;
+            }
+        }
+
+        sb.AppendLine("");
+        sb.AppendLine("  a b c d e f g h");
+
+        Debug.Log(sb.ToString());
     }
 }
