@@ -110,9 +110,6 @@ public class Piece : MonoBehaviour
         //Clean up
         grid.DestroyIndicators();
         grid.clearMoves();
-        grid.generateAllLegalMoves(playerToPlay);
-        Debug.Log("LEgal moves " + grid.getLegalMovesCount());
-        grid.clearMoves();
         //Set the offset from the piece to the mouse (this prevents snapping of the piece onto the mouse)
         offset = rectTransform.position - MouseWorldPosition();
         //Check if the player who wants to play is mated
@@ -453,6 +450,7 @@ public class Piece : MonoBehaviour
     }
     private void handleCastling(int x, int y, bool shortCastle)
     {
+        print("handle castling");
         int rookPosX = x - 4;
         int newRookPos = (int)rectTransform.position.x + 1;
 
@@ -480,7 +478,12 @@ public class Piece : MonoBehaviour
             {
                 // grid.generateAllLegalMoves("black");
                 // grid.playRandomMove();
-                grid.playBestMove(grid.bestMove());
+
+
+                //Serial depth 2 
+                //grid.playBestMove(grid.bestMove());
+
+                grid.getBestMove();
             }
         }
         else
