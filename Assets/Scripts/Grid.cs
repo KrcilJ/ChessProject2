@@ -604,6 +604,9 @@ public class Grid : MonoBehaviour
             //Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
             if (piece.name == "wKing" || piece.name == "bKing" && (castleLong || castleShort))
             {
+                print(convertToFen2());
+                castleLong = false;
+                castleShort = false;
                 myMoves.RemoveAt(myMoves.Count - 1);
             }
             Vector3 kingPos = findKing(playerToplay);
@@ -779,7 +782,7 @@ public class Grid : MonoBehaviour
                     GenerateIndicators(a);
 
                     legalMoves(a);
-
+                    if (moves.Count != 0)
                     {
                         clearMoves();
                         return false;

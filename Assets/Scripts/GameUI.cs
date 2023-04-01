@@ -82,7 +82,7 @@ public class GameUI : MonoBehaviour
     }
     public void hardGamePress()
     {
-        grid.setDepth(1);
+        grid.setDepth(4);
         startAiGame();
     }
     public void aiMenuBackPress()
