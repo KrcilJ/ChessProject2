@@ -1,5 +1,7 @@
 using UnityEngine;
 using TMPro;
+using System.Diagnostics;
+
 public class Piece : MonoBehaviour
 {
     [SerializeField] public Sprite bBishop, bRook, bPawn, bQueen, bKing, bKnight;
@@ -108,7 +110,7 @@ public class Piece : MonoBehaviour
             }
         }
         //Clean up
-        grid.DestroyIndicators();
+
         grid.clearMoves();
         //Set the offset from the piece to the mouse (this prevents snapping of the piece onto the mouse)
         offset = rectTransform.position - MouseWorldPosition();
@@ -118,13 +120,18 @@ public class Piece : MonoBehaviour
             gameOver(playerToPlay, 0);
             return;
         }
+        string enemyPlayer = playerToPlay == "white" ? "black" : "white";
+
         //Disable the collider of the piece we are dragging, otherwise we would always hit the piece with the raycast and not the object bellow it
         rectTransform.GetComponent<Collider2D>().enabled = false;
         grid.clearMoves();
 
-
+        grid.DestroyIndicators();
         if (this != null)
         {
+            grid.setEnpassantBlack(false);
+            grid.setEnpassantWhite(false);
+            grid.clearMoves();
             if (grid.getReplaingGame())
             {
                 grid.setLastMove();
@@ -293,6 +300,7 @@ public class Piece : MonoBehaviour
             // }
             if (legalMove)
             {
+                print("LEGAL MOVE");
                 //if the movec was legal change the position of the piece to the position of the square it is moving to
                 rectTransform.position = hitInfo.transform.position;
                 //Handle queen promotion
@@ -315,13 +323,13 @@ public class Piece : MonoBehaviour
                 }
                 handleQueenPromotion();
                 //Check if the move was a castling move and move the corresponding rook if the was a castling move
-                if (castleLong && (int)rectTransform.position.x == x - 2)
+                if (castleLong && (int)rectTransform.position.x == x - 2 && name.Substring(1) == "King")
                 {
                     handleCastling(x, y, false);
                     grid.setcastleLong(false);
 
                 }
-                if (castleShort && (int)rectTransform.position.x == x + 2)
+                if (castleShort && (int)rectTransform.position.x == x + 2 && name.Substring(1) == "King")
                 {
                     handleCastling(x, y, true);
                     grid.setCastleShort(false);
@@ -334,7 +342,7 @@ public class Piece : MonoBehaviour
                 y = this.GetY();
                 if (grid.getenPassantWhite() && grid.getPosition(x, y - 1) != null)
                 {
-
+                    print("en p w piece");
                     Destroy(grid.getPosition(x, y - 1).gameObject);
                     grid.nullPosition(x, y - 1);
                     if (!grid.getOnlineGame())
@@ -345,6 +353,7 @@ public class Piece : MonoBehaviour
                 }
                 if (grid.getenPassantBlack() && grid.getPosition(x, y + 1) != null)
                 {
+                    print("en p b piece");
                     Destroy(grid.getPosition(this.GetX(), y + 1).gameObject);
                     grid.nullPosition(x, y + 1);
                     if (!grid.getOnlineGame())
@@ -482,8 +491,10 @@ public class Piece : MonoBehaviour
 
                 //Serial depth 2 
                 //grid.playBestMove(grid.bestMove());
-
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 grid.getBestMove();
+                stopwatch.Stop();
+                print($"Time taken {stopwatch.ElapsedMilliseconds}ms");
             }
         }
         else
