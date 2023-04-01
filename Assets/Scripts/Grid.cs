@@ -436,7 +436,7 @@ public class Grid : MonoBehaviour
         {
             if (piece.GetPlayer() == "white")
             {
-                if (piece.GetY() == height - 4 && lastmove.piece.name == "bPawn" && movementY == 2 && positions[(int)lastmove.currentPos.x, height - 3])
+                if (piece.GetY() == height - 4 && lastmove.piece.name == "bPawn" && movementY == 2 && positions[(int)lastmove.currentPos.x, height - 3] == null)
                 {
                     if (xDiff == 1 || xDiff == -1)
                     {
@@ -456,7 +456,7 @@ public class Grid : MonoBehaviour
             }
             else if (piece.GetPlayer() == "black")
             {
-                if (piece.GetY() == 3 && lastmove.piece.name == "wPawn" && movementY == 2 && positions[(int)lastmove.currentPos.x, 2])
+                if (piece.GetY() == 3 && lastmove.piece.name == "wPawn" && movementY == 2 && positions[(int)lastmove.currentPos.x, 2] == null)
                 {
                     if (xDiff == 1 || xDiff == -1)
                     {
@@ -555,11 +555,21 @@ public class Grid : MonoBehaviour
     //Checks if the king is in check by checking if it can be "taken" by an enemy piece
     public bool isInCheck(string player)
     {
+        // Vector3 kingPos = findKing(player);
+        // for (int i = 0; i < moves.Count; i++)
+        // {
+
+        //     if (moves[i] == kingPos)
+        //     {
+        //         return true;
+        //     }
+        // }
+        // return false;
         Vector3 kingPos = findKing(player);
-        for (int i = 0; i < moves.Count; i++)
+        for (int i = 0; i < captures.Count; i++)
         {
 
-            if (moves[i] == kingPos)
+            if (captures[i] == kingPos)
             {
                 return true;
             }
@@ -592,7 +602,7 @@ public class Grid : MonoBehaviour
             checkMove.check = true;
             movesPlayed[movesPlayed.Count - 1] = checkMove;
             //Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
-            // if (piece.name == "wKing" || piece.name == "bKing")
+            // if (piece.name == "wKing" || piece.name == "bKing" && (castleLong || castleShort))
             // {
             //     myMoves.RemoveAt(myMoves.Count - 1);
             // }
@@ -622,7 +632,7 @@ public class Grid : MonoBehaviour
             {
 
                 // && Math.Abs(myMoves[j].x - originalX) == 1 && lastmove.piece.name == "bPawn" && lastmove.currentPos.y == originalY && Math.Abs(lastmove.currentPos.y - lastmove.originalPos.y) == 2 && lastmove.currentPos.x == myMoves[j].x && Math.Abs(originalX - lastmove.currentPos.x) == 1
-                print("HAAAAAAAAAAA");
+
                 enW = true;
                 pieceToTake = positions[(int)myMoves[j].x, (int)myMoves[j].y - 1];
                 positions[(int)myMoves[j].x, (int)myMoves[j].y - 1] = null;
@@ -660,7 +670,7 @@ public class Grid : MonoBehaviour
             {
                 if (enW)
                 {
-                    print("HUUUUUUUUUUUU");
+
                     //&& Math.Abs(myMoves[j].x - originalX) == 1 && lastmove.piece.name == "bPawn" && lastmove.currentPos.y == originalY &&
                     //Math.Abs(lastmove.currentPos.y - lastmove.originalPos.y) == 2 && lastmove.currentPos.x == myMoves[j].x && Math.Abs(originalX - lastmove.currentPos.x) == 1
                     positions[(int)myMoves[j].x, (int)myMoves[j].y] = null;
@@ -758,35 +768,34 @@ public class Grid : MonoBehaviour
     {
 
 
-        // for (int i = 0; i < width; i++)
-        // {
-        //     for (int k = 0; k < height; k++)
-        //     {
-        //         Piece a = positions[i, k];
-        //         if (a != null && a.GetPlayer() == player)
-        //         {
-        //             moves.Clear();
-        //             GenerateIndicators(a);
-
-        //             legalMoves(a);
-
-        //             {
-        //                 //Debug.Log(i + "   " + k);
-        //                 clearMoves();
-        //                 return false;
-        //             }
-        //         }
-        //     }
-        // }
-        moves.Clear();
-        allLegalMoves.Clear();
-        generateAllLegalMoves(player);
-        if (allLegalMoves.Count != 0)
+        for (int i = 0; i < width; i++)
         {
-            moves.Clear();
-            allLegalMoves.Clear();
-            return false;
+            for (int k = 0; k < height; k++)
+            {
+                Piece a = positions[i, k];
+                if (a != null && a.GetPlayer() == player)
+                {
+                    moves.Clear();
+                    GenerateIndicators(a);
+
+                    legalMoves(a);
+
+                    {
+                        clearMoves();
+                        return false;
+                    }
+                }
+            }
         }
+        // moves.Clear();
+        // allLegalMoves.Clear();
+        // generateAllLegalMoves(player);
+        // if (allLegalMoves.Count != 0)
+        // {
+        //     moves.Clear();
+        //     allLegalMoves.Clear();
+        //     return false;
+        // }
         //If the game is online send a message to the other player
         if (onlineGame)
         {
@@ -1808,7 +1817,7 @@ public class Grid : MonoBehaviour
     }
     public void generateAllLegalMoves(string player)
     {
-        string boardBeforeAIMove = convertToFen2();
+        // string boardBeforeAIMove = convertToFen2();
 
         allLegalMoves.Clear();
         moves.Clear();
@@ -1840,12 +1849,12 @@ public class Grid : MonoBehaviour
                     }
 
                     moves.Clear();
-                    if (convertToFen2() != boardBeforeAIMove)
-                    {
-                        print($"FROM {a} equal {boardBeforeAIMove} // {convertToFen2()}");
+                    // if (convertToFen2() != boardBeforeAIMove)
+                    // {
+                    //     print($"FROM {a} equal {boardBeforeAIMove} // {convertToFen2()}");
 
-                    }
-                    moves.Clear();
+                    // }
+                    // moves.Clear();
                 }
             }
         }
@@ -2041,26 +2050,17 @@ public class Grid : MonoBehaviour
             playerToplay = "white";
 
             generateAllLegalMoves("white");
-            List<Move> legalMoves = new List<Move>(allLegalMoves);
+            // List<Move> legalMoves = new List<Move>(allLegalMoves);
+            // shuffleList(legalMoves);
+            List<Move> legalMoves = new List<Move>(orderMoves("white"));
 
-            shuffleList(legalMoves);
             foreach (Move move in legalMoves)
             {
                 string boardBeforeAIMove = convertToFen2();
                 bool piece1Moved = positions[(int)move.originalPos.x, (int)move.originalPos.y].getHasMoved();
 
-                List<Vector2> positionsBeforeAI = new List<Vector2>();
-                for (int i = 0; i < width; i++)
-                {
-                    for (int k = 0; k < height; k++)
-                    {
-                        Piece piece = positions[i, k];
-                        if (piece != null)
-                        {
-                            positionsBeforeAI.Add(new Vector2(piece.GetX(), piece.GetY()));
-                        }
-                    }
-                }
+
+
                 // print($"MAKING MOVE {(int)move.originalPos.x}, {(int)move.originalPos.y}, {(int)move.currentPos.x}, {(int)move.currentPos.y}");
                 Piece pieceToTake1 = makeMove((int)move.originalPos.x, (int)move.originalPos.y, (int)move.currentPos.x, (int)move.currentPos.y);
                 int eval = Minimax(depth - 1, false, alpha, beta);
@@ -2072,38 +2072,14 @@ public class Grid : MonoBehaviour
                     print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
 
                 }
-                List<Vector2> positionsAfterAI = new List<Vector2>();
-                // if (convertToFen().Split(" ")[0] != boardBeforeAIMove.Split(" ")[0])
-                // {
 
-                //     print($"DEPTH {depth} boards are not equal {boardBeforeAIMove.Split(" ")[0]} // {convertToFen().Split(" ")[0]}");
-                //     print($"{(int)move.originalPos.x}, {(int)move.originalPos.y}, {(int)move.currentPos.x}, {(int)move.currentPos.y}");
-                // }
-                for (int i = 0; i < width; i++)
-                {
-                    for (int k = 0; k < height; k++)
-                    {
-                        Piece piece = positions[i, k];
-                        if (piece != null)
-                        {
-                            positionsAfterAI.Add(new Vector2(piece.GetX(), piece.GetY()));
-                        }
-                    }
-                }
-                // for (int i = 0; i < positionsAfterAI.Count; i++)
-                // {
-                //     if (positionsAfterAI[i] != positionsBeforeAI[i])
-                //     {
-                //         print($"X,Y are not equal{positionsAfterAI[i]} and {positionsBeforeAI[i]}");
-                //     }
-                // }
                 if (eval > maxEval)
                 {
                     maxEval = eval;
-                    // if (depth == treeDepth)
-                    // {
-                    //     BESTMOVE = move;
-                    // }
+                    if (depth == treeDepth)
+                    {
+                        BESTMOVE = move;
+                    }
                 }
                 alpha = Math.Max(alpha, eval);
 
@@ -2124,8 +2100,9 @@ public class Grid : MonoBehaviour
 
             generateAllLegalMoves("black");
 
-            List<Move> legalMoves = new List<Move>(allLegalMoves);
-            shuffleList(legalMoves);
+            // List<Move> legalMoves = new List<Move>(allLegalMoves);
+            // shuffleList(legalMoves);
+            List<Move> legalMoves = new List<Move>(orderMoves("black"));
             foreach (Move move in legalMoves)
             {
                 bool piece1Moved = positions[(int)move.originalPos.x, (int)move.originalPos.y].getHasMoved();
@@ -2173,7 +2150,9 @@ public class Grid : MonoBehaviour
         string playerToPlay = positions[originalX, originalY].GetPlayer();
         Piece piece = positions[originalX, originalY];
 
-
+        Vector3 kingPos = findKing(playerToplay);
+        Tile kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
+        kingTile.resetColor(); //if the king was in check, reset the color of the king square to the original tile color
 
         if (positions[goalX, goalY] != null)
         {
@@ -2267,7 +2246,13 @@ public class Grid : MonoBehaviour
     {
         List<Move> orderedMoves = new List<Move>();
         captures.Clear();
+        moves.Clear();
         generateAllPseudoLegalMoves(player);
+        if (captures.Count == 0)
+        {
+            shuffleList(allLegalMoves);
+            return new List<Move>(allLegalMoves);
+        }
         for (int i = 0; i < allLegalMoves.Count; i++)
         {
             for (int j = 0; j < captures.Count; j++)
@@ -2275,15 +2260,14 @@ public class Grid : MonoBehaviour
                 if (allLegalMoves[i].currentPos.x == captures[j].x && allLegalMoves[i].currentPos.y == captures[j].y)
                 {
                     orderedMoves.Add(allLegalMoves[i]);
-                    allLegalMoves.RemoveAt(i);
-                    i--;
                     captures.RemoveAt(j);
+                    break;
+
                 }
             }
         }
 
         orderedMoves.AddRange(allLegalMoves);
-
         return orderedMoves;
     }
     private void makeCaptureIndicators()

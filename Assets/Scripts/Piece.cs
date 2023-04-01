@@ -300,7 +300,7 @@ public class Piece : MonoBehaviour
             // }
             if (legalMove)
             {
-                print("LEGAL MOVE");
+
                 //if the movec was legal change the position of the piece to the position of the square it is moving to
                 rectTransform.position = hitInfo.transform.position;
                 //Handle queen promotion
