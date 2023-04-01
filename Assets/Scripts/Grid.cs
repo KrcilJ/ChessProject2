@@ -50,7 +50,7 @@ public class Grid : MonoBehaviour
     const int rookValue = 500;
     const int queenValue = 900;
     const int checkmateValue = 9999;
-    const int treeDepth = 4;
+    private int treeDepth = 4;
     List<Move> allLegalMoves = new List<Move>();
     //Structure to save information about a move
     public struct Move
@@ -602,10 +602,10 @@ public class Grid : MonoBehaviour
             checkMove.check = true;
             movesPlayed[movesPlayed.Count - 1] = checkMove;
             //Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
-            // if (piece.name == "wKing" || piece.name == "bKing" && (castleLong || castleShort))
-            // {
-            //     myMoves.RemoveAt(myMoves.Count - 1);
-            // }
+            if (piece.name == "wKing" || piece.name == "bKing" && (castleLong || castleShort))
+            {
+                myMoves.RemoveAt(myMoves.Count - 1);
+            }
             Vector3 kingPos = findKing(playerToplay);
             kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
             kingTile.tileRed();
@@ -1060,6 +1060,10 @@ public class Grid : MonoBehaviour
         allLegalMoves.Clear();
         return count;
 
+    }
+    public void setDepth(int depth)
+    {
+        treeDepth = depth;
     }
     //Register for online messages
     private void registerEvents()

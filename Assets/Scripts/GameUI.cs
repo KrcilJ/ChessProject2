@@ -65,7 +65,33 @@ public class GameUI : MonoBehaviour
     }
     public void aiGamePress()
     {
-        menuAnimator.SetTrigger("NoMenu");
+        menuAnimator.SetTrigger("aiMenu");
+
+    }
+    public void trivialGamePress()
+    {
+
+        grid.setDepth(1);
+        startAiGame();
+
+    }
+    public void mediumGamePress()
+    {
+        grid.setDepth(2);
+        startAiGame();
+    }
+    public void hardGamePress()
+    {
+        grid.setDepth(1);
+        startAiGame();
+    }
+    public void aiMenuBackPress()
+    {
+        menuAnimator.SetTrigger("MainMenu");
+    }
+    private void startAiGame()
+    {
+        menuAnimator.SetTrigger("noMenu");
         grid.setComputerPlayer("black");
         grid.startGame();
     }
