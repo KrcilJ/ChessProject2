@@ -335,24 +335,18 @@ public class Grid : MonoBehaviour
                 //Just check this if the player is on their turn as the function also checks for checks
                 if (piece.GetPlayer() == getPlayerToPlay())
                 {
-                    if (!replayingGame)
-                    {
 
-                    }
-                    canCastle(piece);
-                    if (castleLong)
-                    {
-                        createIndicator(x - 2, y, piece);
-                    }
-                    if (castleShort)
-                    {
-                        createIndicator(x + 2, y, piece);
-                    }
+                    // canCastle(piece);
+                    // if (castleLong)
+                    // {
+                    //     createIndicator(x - 2, y, piece);
+                    // }
+                    // if (castleShort)
+                    // {
+                    //     createIndicator(x + 2, y, piece);
+                    // }
                 }
-                // Debug.Log("after methods");
-                // for(int i = 0; i < moves.Count; i++) {
-                //     Debug.Log(moves[i]);
-                // }
+
                 break;
 
         }
@@ -586,7 +580,8 @@ public class Grid : MonoBehaviour
         List<Vector3> myMoves = new List<Vector3>(moves); //save the current pieces possible moves
 
         Piece pieceToTake = null;
-
+        int originalX = piece.GetX();
+        int originalY = piece.GetY();
         clearMoves();
         captures.Clear();
         //Generate all possible moves for the enemy pieces - these will be now saved in the moves array
@@ -602,21 +597,37 @@ public class Grid : MonoBehaviour
             checkMove.check = true;
             movesPlayed[movesPlayed.Count - 1] = checkMove;
             //Debug.Log(movesPlayed[movesPlayed.Count - 1].pieceName + "checking piece");
-            if (piece.name == "wKing" || piece.name == "bKing" && (castleLong || castleShort))
-            {
-                print(convertToFen2());
-                castleLong = false;
-                castleShort = false;
-                myMoves.RemoveAt(myMoves.Count - 1);
-            }
+            // if (piece.name == "wKing" || piece.name == "bKing" && (castleLong || castleShort))
+            // {
+            //     print("removing move");
+            //     print(convertToFen2());
+            //     castleLong = false;
+            //     castleShort = false;
+            //     myMoves.RemoveAt(myMoves.Count - 1);
+            // }
             Vector3 kingPos = findKing(playerToplay);
             kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
             kingTile.tileRed();
         }
+        else if (piece.name == "wKing" || piece.name == "bKing")
+        {
+            clearMoves();
+            GenerateIndicators(piece);
+            canCastle(piece);
+            if (castleLong)
+            {
+                myMoves.Add(new Vector3(originalX - 2, originalY, -1));
+                createIndicator(originalX - 2, originalY, piece);
+            }
+            if (castleShort)
+            {
+                myMoves.Add(new Vector3(originalX + 2, originalY, -1));
+                createIndicator(originalX + 2, originalY, piece);
+            }
+        }
         //Save the original position of the piece we want to move
 
-        int originalX = piece.GetX();
-        int originalY = piece.GetY();
+
         // Debug.Log($"Original X {originalX} and {originalY}");
         //Debug.Log("my moves");
 
@@ -2056,10 +2067,10 @@ public class Grid : MonoBehaviour
             moves.Clear();
             playerToplay = "white";
 
-            generateAllLegalMoves("white");
+            generateAllLegalMoves(playerToplay);
             // List<Move> legalMoves = new List<Move>(allLegalMoves);
             // shuffleList(legalMoves);
-            List<Move> legalMoves = new List<Move>(orderMoves("white"));
+            List<Move> legalMoves = new List<Move>(orderMoves(playerToplay));
 
             foreach (Move move in legalMoves)
             {
@@ -2079,6 +2090,11 @@ public class Grid : MonoBehaviour
                     print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
 
                 }
+                alpha = Math.Max(alpha, eval);
+                if (beta <= alpha)
+                {
+                    break;
+                }
 
                 if (eval > maxEval)
                 {
@@ -2087,13 +2103,6 @@ public class Grid : MonoBehaviour
                     {
                         BESTMOVE = move;
                     }
-                }
-                alpha = Math.Max(alpha, eval);
-
-
-                if (beta <= alpha)
-                {
-                    break;
                 }
             }
             return maxEval;
@@ -2105,11 +2114,11 @@ public class Grid : MonoBehaviour
             moves.Clear();
             playerToplay = "black";
 
-            generateAllLegalMoves("black");
+            generateAllLegalMoves(playerToplay);
 
             // List<Move> legalMoves = new List<Move>(allLegalMoves);
             // shuffleList(legalMoves);
-            List<Move> legalMoves = new List<Move>(orderMoves("black"));
+            List<Move> legalMoves = new List<Move>(orderMoves(playerToplay));
             foreach (Move move in legalMoves)
             {
                 bool piece1Moved = positions[(int)move.originalPos.x, (int)move.originalPos.y].getHasMoved();
@@ -2125,6 +2134,11 @@ public class Grid : MonoBehaviour
                     print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
 
                 }
+                beta = Math.Min(beta, eval);
+                if (beta <= alpha)
+                {
+                    break;
+                }
                 if (eval < minEval)
                 {
                     minEval = eval;
@@ -2139,14 +2153,6 @@ public class Grid : MonoBehaviour
                     print($"last settiing move to piece{move.piece.name}");
                     BESTMOVE = move;
                 }
-                beta = Math.Min(beta, eval);
-
-
-                if (beta <= alpha)
-                {
-                    break;
-                }
-
             }
             return minEval;
         }
@@ -2168,14 +2174,12 @@ public class Grid : MonoBehaviour
         else if (playerToPlay == "white" && Math.Abs(originalX - goalX) == 1 && piece.name == "wPawn" && lastmove.piece.name == "bPawn" && lastmove.currentPos.y == originalY &&
         Math.Abs(lastmove.currentPos.y - lastmove.originalPos.y) == 2 && lastmove.currentPos.x == goalX && Math.Abs(originalX - lastmove.currentPos.x) == 1 && positions[goalX, goalY] == null)
         {
-            print("WHITE");
-            print(positions[goalX, goalY]);
+
             pieceToTake = positions[goalX, goalY - 1];
             positions[goalX, goalY - 1] = null;
         }
         else if (playerToPlay == "black" && Math.Abs(originalX - goalX) == 1 && piece.name == "bPawn" && lastmove.piece.name == "wPawn" && lastmove.currentPos.y == originalY && Math.Abs(lastmove.currentPos.y - lastmove.originalPos.y) == 2 && lastmove.currentPos.x == goalX && Math.Abs(originalX - lastmove.currentPos.x) == 1 && positions[goalX, goalY] == null)
         {
-            print("BLACK");
             pieceToTake = positions[goalX, goalY + 1];
             positions[goalX, goalY + 1] = null;
         }
