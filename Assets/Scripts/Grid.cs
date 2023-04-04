@@ -549,16 +549,6 @@ public class Grid : MonoBehaviour
     //Checks if the king is in check by checking if it can be "taken" by an enemy piece
     public bool isInCheck(string player)
     {
-        // Vector3 kingPos = findKing(player);
-        // for (int i = 0; i < moves.Count; i++)
-        // {
-
-        //     if (moves[i] == kingPos)
-        //     {
-        //         return true;
-        //     }
-        // }
-        // return false;
         Vector3 kingPos = findKing(player);
         for (int i = 0; i < captures.Count; i++)
         {
@@ -582,8 +572,6 @@ public class Grid : MonoBehaviour
         Piece pieceToTake = null;
         int originalX = piece.GetX();
         int originalY = piece.GetY();
-        clearMoves();
-        captures.Clear();
         //Generate all possible moves for the enemy pieces - these will be now saved in the moves array
         generateAllPseudoLegalMoves(enemyPlayer);
         // Debug.Log(convertToFen());
@@ -663,8 +651,6 @@ public class Grid : MonoBehaviour
             // piece.SetY((int)myMoves[j].y);
             positions[originalX, originalY] = null;
 
-            clearMoves();
-            captures.Clear();
             //After the move has been made generate the moves of the opponent again
             generateAllPseudoLegalMoves(enemyPlayer);
 
@@ -780,8 +766,6 @@ public class Grid : MonoBehaviour
     //Check for checkmate by checking if a player has any legal moves
     public bool checkmate(string player)
     {
-
-
         for (int i = 0; i < width; i++)
         {
             for (int k = 0; k < height; k++)
@@ -847,16 +831,13 @@ public class Grid : MonoBehaviour
         int moveIndex = 1;
         Move2 move;
         for (int i = index; i < movesPlayed.Count; i++)
-
         {
-
             string text = $"{moveNuber + 1} ";
             moveIndex++;
             string notation = convertNotation(movesPlayed[i]);
+            //if the move was a castling move, remove the rook move (as castling is technically two moves, we remove one so it effectivelly counts as one)
             if (notation == "O-O" || notation == "O-O-O")
             {
-
-
                 movesPlayed.RemoveAt(i + 1);
                 move = movesPlayed[i];
                 move.castle = true;
@@ -1817,9 +1798,12 @@ public class Grid : MonoBehaviour
     }
 
     //=======AI================
+
+    //Generate all pseudo legal moves (not taking into account for check) for a player
     public void generateAllPseudoLegalMoves(string player)
     {
-
+        captures.Clear();
+        moves.Clear();
         for (int i = 0; i < width; i++)
         {
             for (int k = 0; k < height; k++)
@@ -2039,6 +2023,8 @@ public class Grid : MonoBehaviour
         return bestMove;
     }
     private Move BESTMOVE = new Move();
+
+    //Minimax algorithm with alpha-beta prunning which finds a best move for a player based on an evelation function
     public int Minimax(int depth, bool isMaximizingPlayer, int alpha, int beta)
     {
         if (depth == 0)
@@ -2088,14 +2074,7 @@ public class Grid : MonoBehaviour
                 if (convertToFen2() != boardBeforeAIMove)
                 {
                     print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
-
                 }
-                alpha = Math.Max(alpha, eval);
-                if (beta <= alpha)
-                {
-                    break;
-                }
-
                 if (eval > maxEval)
                 {
                     maxEval = eval;
@@ -2103,6 +2082,11 @@ public class Grid : MonoBehaviour
                     {
                         BESTMOVE = move;
                     }
+                }
+                alpha = Math.Max(alpha, eval);
+                if (beta <= alpha)
+                {
+                    break;
                 }
             }
             return maxEval;
@@ -2132,12 +2116,6 @@ public class Grid : MonoBehaviour
                 if (convertToFen2() != boardBeforeAIMove)
                 {
                     print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
-
-                }
-                beta = Math.Min(beta, eval);
-                if (beta <= alpha)
-                {
-                    break;
                 }
                 if (eval < minEval)
                 {
@@ -2153,24 +2131,33 @@ public class Grid : MonoBehaviour
                     print($"last settiing move to piece{move.piece.name}");
                     BESTMOVE = move;
                 }
+                beta = Math.Min(beta, eval);
+                if (beta <= alpha)
+                {
+                    break;
+                }
             }
             return minEval;
         }
     }
+    bool wQPromotion = false;
+    bool bQPromotion = false;
     public Piece makeMove(int originalX, int originalY, int goalX, int goalY)
     {
         Piece pieceToTake = null;
         string playerToPlay = positions[originalX, originalY].GetPlayer();
         Piece piece = positions[originalX, originalY];
 
+        //if the king was in check, reset the color of the king square to the original tile color
         Vector3 kingPos = findKing(playerToplay);
         Tile kingTile = GameObject.Find("Tile " + (int)kingPos.x + " " + (int)kingPos.y).GetComponent<Tile>();
-        kingTile.resetColor(); //if the king was in check, reset the color of the king square to the original tile color
+        kingTile.resetColor();
 
         if (positions[goalX, goalY] != null)
         {
             pieceToTake = positions[goalX, goalY];
         }
+        //Check for en passant
         else if (playerToPlay == "white" && Math.Abs(originalX - goalX) == 1 && piece.name == "wPawn" && lastmove.piece.name == "bPawn" && lastmove.currentPos.y == originalY &&
         Math.Abs(lastmove.currentPos.y - lastmove.originalPos.y) == 2 && lastmove.currentPos.x == goalX && Math.Abs(originalX - lastmove.currentPos.x) == 1 && positions[goalX, goalY] == null)
         {
@@ -2183,6 +2170,23 @@ public class Grid : MonoBehaviour
             pieceToTake = positions[goalX, goalY + 1];
             positions[goalX, goalY + 1] = null;
         }
+        // if (piece.name == "wPawn" && goalY == 7)
+        // {
+        //     piece.name = "wQueen";
+        //     piece.SetPiece();
+        //     wQPromotion = true;
+        // }
+        // else if (piece.name == "bPawn" && goalY == 0)
+        // {
+        //     piece.name = "bQueen";
+        //     piece.SetPiece();
+        //     bQPromotion = true;
+        // }
+        // else
+        // {
+        //     wQPromotion = true;
+        //     bQPromotion = true;
+        // }
         lastmove.currentPos = new Vector2(goalX, goalY);
         lastmove.originalPos = new Vector2(originalX, originalY);
         lastmove.piece = piece;
@@ -2213,6 +2217,16 @@ public class Grid : MonoBehaviour
         piece.setHasMoved(originalPieceMoved);
         piece.SetX(originalX);
         piece.SetY(originalY);
+        // if (wQPromotion)
+        // {
+        //     piece.name = "wPawn";
+        //     piece.SetPiece();
+        // }
+        // else if (bQPromotion)
+        // {
+        //     piece.name = "bPawn";
+        //     piece.SetPiece();
+        // }
         castleLong = false;
         castleShort = false;
         enPassantBlack = false;
@@ -2253,11 +2267,11 @@ public class Grid : MonoBehaviour
         }
     }
 
+    //Orders the legal moves so captures are first in the list
     private List<Move> orderMoves(string player)
     {
         List<Move> orderedMoves = new List<Move>();
-        captures.Clear();
-        moves.Clear();
+
         generateAllPseudoLegalMoves(player);
         if (captures.Count == 0)
         {

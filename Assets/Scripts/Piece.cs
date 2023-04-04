@@ -132,6 +132,7 @@ public class Piece : MonoBehaviour
             grid.setEnpassantBlack(false);
             grid.setEnpassantWhite(false);
             grid.clearMoves();
+            //if the game is being replayed and we want to make a move we need to set the last move played (needed for correct move generation)
             if (grid.getReplaingGame())
             {
                 grid.setLastMove();
@@ -189,121 +190,12 @@ public class Piece : MonoBehaviour
                     }
                 }
             }
-            // bool castleShort = false;
-            // bool castleLong = false;
-            // int x = 0, y = 0;
-            // if (legalMove || takePiece)
-            // {
-            //     //if the movec was legal change the position of the piece to the position of the square it is moving to
-            //     rectTransform.position = hitInfo.transform.position;
-            //     //Handle queen promotion
-            //     if (grid.getReplaingGame())
-            //     {
-            //         grid.destroyMoves(grid.getReplayMoveIndex());
-            //         grid.setReplaingGame(false);
-            //     }
-            //     castleShort = grid.getCastleShort();
-            //     castleLong = grid.getCastleLong();
-
-            //     x = this.GetX();
-            //     y = this.GetY();
-            //     setHasMoved(true);
-
-            //     grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
-
-            //     handleQueenPromotion();
-            // }
-            // if (legalMove)
-            // {
-            //     if (grid.getReplayMoveIndex() != 0 && !(castleLong || castleShort))
-            //     {
-            //         grid.generatePlayedMoves(grid.getNumMoves() - 1);
-            //     }
-            //     //Check if the move was a castling move and move the corresponding rook if the was a castling move
-            //     if (castleLong && (int)rectTransform.position.x == x - 2)
-            //     {
-            //         handleCastling(x, y, false);
-            //         grid.setcastleLong(false);
-            //     }
-            //     if (castleShort && (int)rectTransform.position.x == x + 2)
-            //     {
-            //         handleCastling(x, y, true);
-            //         grid.setCastleShort(false);
-            //     }
-
-
-            //     //Check if the move en passant, if it was destroy the pawn behind the en passant move
-            //     x = this.GetX();
-            //     y = this.GetY();
-            //     if (grid.getenPassantWhite() && grid.getPosition(x, y - 1) != null)
-            //     {
-
-            //         Destroy(grid.getPosition(x, y - 1).gameObject);
-            //         grid.nullPosition(x, y - 1);
-            //         if (!grid.getOnlineGame())
-            //         {
-            //             grid.setEnpassantWhite(false);
-            //         }
-
-            //     }
-            //     else if (grid.getenPassantBlack() && grid.getPosition(x, y + 1) != null)
-            //     {
-            //         Destroy(grid.getPosition(this.GetX(), y + 1).gameObject);
-            //         grid.nullPosition(x, y + 1);
-            //         if (!grid.getOnlineGame())
-            //         {
-            //             grid.setEnpassantBlack(false);
-            //         }
-            //     }
-            //     grid.addFEN();
-            //     //Clean up
-            //     grid.clearMoves();
-            //     grid.DestroyIndicators();
-            //     if (player == "white")
-            //     {
-            //         grid.setPlayerToPlay("black");
-            //         grid.generateAllLegalMoves("black");
-            //         grid.playRandomMove();
-            //     }
-            //     else
-            //     {
-            //         grid.setPlayerToPlay("white");
-            //     }
-            // }
-
-            // //Logic for when we are taking a piece
-            // else if (takePiece && grid.getPosition((int)hitInfo.transform.position.x, (int)hitInfo.transform.position.y).GetPlayer() != GetPlayer())
-            // {
-
-            //     //Destroy the piece that was on the square
-            //     Destroy(hitInfo.transform.gameObject);
-            //     grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
-            //     if (grid.getReplayMoveIndex() != 0)
-            //     {
-            //         grid.generatePlayedMoves(grid.getNumMoves() - 1);
-            //     }
-            //     handleQueenPromotion();
-            //     grid.addFEN();
-            //     grid.clearMoves();
-            //     grid.DestroyIndicators();
-            //     if (player == "white")
-            //     {
-            //         grid.setPlayerToPlay("black");
-            //         grid.generateAllLegalMoves("black");
-            //         grid.playRandomMove();
-            //     }
-            //     else
-            //     {
-            //         grid.setPlayerToPlay("white");
-            //     }
-
-            // }
             if (legalMove)
             {
 
                 //if the movec was legal change the position of the piece to the position of the square it is moving to
                 rectTransform.position = hitInfo.transform.position;
-                //Handle queen promotion
+
                 if (grid.getReplaingGame())
                 {
                     grid.destroyMoves(grid.getReplayMoveIndex());
@@ -317,10 +209,12 @@ public class Piece : MonoBehaviour
                 setHasMoved(true);
 
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
+                //if we are replaying a game and we are not castling generate the notation for the move we just played
                 if (grid.getReplayMoveIndex() != 0 && !(castleLong || castleShort))
                 {
                     grid.generatePlayedMoves(grid.getNumMoves() - 1);
                 }
+                //Handle queen promotion
                 handleQueenPromotion();
                 //Check if the move was a castling move and move the corresponding rook if the was a castling move
                 if (castleLong && (int)rectTransform.position.x == x - 2 && name.Substring(1) == "King")
@@ -459,7 +353,7 @@ public class Piece : MonoBehaviour
     }
     private void handleCastling(int x, int y, bool shortCastle)
     {
-        print("handle castling");
+        //Set the initial and final rook position based on the side we are castling
         int rookPosX = x - 4;
         int newRookPos = (int)rectTransform.position.x + 1;
 
@@ -471,6 +365,7 @@ public class Piece : MonoBehaviour
         Piece rook = grid.getPosition(rookPosX, y).GetComponent<Piece>();
         rook.rectTransform.position = new Vector3(newRookPos, rectTransform.position.y, -1);
         grid.SetPosition(rook, newRookPos, (int)rectTransform.position.y);
+        //Generate the castle move if we are castling manually after replaying a game
         if (grid.getReplayMoveIndex() != 0)
         {
             grid.generatePlayedMoves(grid.getNumMoves() - 2);
@@ -485,12 +380,6 @@ public class Piece : MonoBehaviour
             grid.setPlayerToPlay("black");
             if (grid.getComputerPlayer() == "black")
             {
-                // grid.generateAllLegalMoves("black");
-                // grid.playRandomMove();
-
-
-                //Serial depth 2 
-                //grid.playBestMove(grid.bestMove());
                 Stopwatch stopwatch = Stopwatch.StartNew();
                 grid.getBestMove();
                 stopwatch.Stop();
