@@ -832,7 +832,9 @@ public class Grid : MonoBehaviour
         Move2 move;
         for (int i = index; i < movesPlayed.Count; i++)
         {
-            string text = $"{moveNuber + 1} ";
+
+            string text = $"{(moveNuber + 2) / 2} ";
+
             moveIndex++;
             string notation = convertNotation(movesPlayed[i]);
             //if the move was a castling move, remove the rook move (as castling is technically two moves, we remove one so it effectivelly counts as one)
@@ -1205,6 +1207,7 @@ public class Grid : MonoBehaviour
     private int replayMoveIndex = 0;
     public void replayGame()
     {
+
         destroyAssets();
         startGame();
         replayingGame = true;
@@ -1343,6 +1346,12 @@ public class Grid : MonoBehaviour
         numPlayers = -1;
         currentPlayer = -1;
         lastmove.piece = null;
+        clearMoves();
+        captures.Clear();
+        allLegalMoves.Clear();
+        replayingGame = false;
+        replayMoveIndex = 0;
+        moveNuber = 0;
 
         GameObject[] tiles = GameObject.FindGameObjectsWithTag("DropArea");
         for (int i = 0; i < tiles.Length; i++)
