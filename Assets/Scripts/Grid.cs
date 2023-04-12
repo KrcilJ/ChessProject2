@@ -1128,7 +1128,7 @@ public class Grid : MonoBehaviour
             }
             //Handle enpassant
             int xDiff = Math.Abs(move.originalX - move.goalX);
-            if (xDiff == 1 && positions[move.goalX, move.goalY])
+            if (xDiff == 1 && positions[move.goalX, move.goalY] == null)
             {
                 if (isWPawn(piece.name))
                 {
@@ -1161,6 +1161,7 @@ public class Grid : MonoBehaviour
             }
             //Move the piece to the position
             piece.transform.position = new Vector3(move.goalX, move.goalY, -1);
+            piece.setHasMoved(true);
             SetPosition(piece, move.goalX, move.goalY);
             addFEN();
             if (move.team == 0)
@@ -1219,6 +1220,10 @@ public class Grid : MonoBehaviour
         generatePlayedMoves(0);
         //Show a back and forward button
 
+    }
+    public void clearMovesPlayed()
+    {
+        movesPlayed.Clear();
     }
     public void replayNumMoves(int index)
     {
@@ -1357,6 +1362,8 @@ public class Grid : MonoBehaviour
         replayingGame = false;
         replayMoveIndex = 0;
         moveNuber = 0;
+        computerPlayer = "";
+
 
         GameObject[] tiles = GameObject.FindGameObjectsWithTag("DropArea");
         for (int i = 0; i < tiles.Length; i++)
@@ -2220,6 +2227,7 @@ public class Grid : MonoBehaviour
     {
         Piece pieceAtPos = positions[move.goalPos.x, move.goalPos.y];
         SetPosition(move.piece, move.goalPos.x, move.goalPos.y);
+        addFEN();
         if (pieceAtPos != null)
         {
             Destroy(pieceAtPos.gameObject);

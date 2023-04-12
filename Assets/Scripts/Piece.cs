@@ -380,6 +380,11 @@ public class Piece : MonoBehaviour
             grid.setPlayerToPlay("black");
             if (grid.getComputerPlayer() == "black")
             {
+                if (grid.checkmate(grid.getPlayerToPlay()))
+                {
+                    gameOver(grid.getPlayerToPlay(), 0);
+                    return;
+                }
                 Stopwatch stopwatch = Stopwatch.StartNew();
                 grid.getBestMove();
                 stopwatch.Stop();

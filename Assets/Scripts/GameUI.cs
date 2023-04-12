@@ -42,6 +42,8 @@ public class GameUI : MonoBehaviour
         // nextButton.SetActive(true);
         // prevButton.SetActive(true);
         // scrollArea.SetActive(true);
+        grid.destroyMoves(0);
+        grid.clearMovesPlayed();
         grid.destroyAssets();
     }
     public void gameOverMainMenuPress()
