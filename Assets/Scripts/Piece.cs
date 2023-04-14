@@ -115,11 +115,14 @@ public class Piece : MonoBehaviour
         //Set the offset from the piece to the mouse (this prevents snapping of the piece onto the mouse)
         offset = rectTransform.position - MouseWorldPosition();
         //Check if the player who wants to play is mated
+
         if (grid.checkmate(playerToPlay))
         {
             gameOver(playerToPlay, 0);
             return;
         }
+
+
         string enemyPlayer = playerToPlay == "white" ? "black" : "white";
 
         //Disable the collider of the piece we are dragging, otherwise we would always hit the piece with the raycast and not the object bellow it

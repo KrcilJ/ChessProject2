@@ -10,17 +10,6 @@ public class ReplayMove : MonoBehaviour
     [SerializeField] private GameObject parent;
     [SerializeField] private GameObject replayMoveIndex;
     private Grid grid;
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
     void Awake()
     {
         grid = GameObject.FindGameObjectWithTag("GameController").GetComponent<Grid>();
@@ -41,14 +30,10 @@ public class ReplayMove : MonoBehaviour
         mText.text = moveText;
         spawnedMove.name = $"Move {index}";
     }
-    //  void OnMouseDown()
-    // {
-    //     Debug.Log("Pressed on " + GetComponent<TextMeshProUGUI>().text);
-    // }
+
     public void clicked()
     {
         int index = Convert.ToInt32(this.name.Substring(4));
-        Debug.Log(index);
         grid.replayNumMoves(index + 1);
 
     }

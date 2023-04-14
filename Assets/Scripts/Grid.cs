@@ -631,9 +631,7 @@ public class Grid : MonoBehaviour
                 {
                     if (playerToPlay == "white" && enPassantWhite == true && isWPawn(piece.name))
                     {
-
                         // && Math.Abs(myMoves[j].x - originalX) == 1 && lastmove.isBPawn(piece.name) && lastmove.goalPos.y == originalY && Math.Abs(lastmove.goalPos.y - lastmove.originalPos.y) == 2 && lastmove.goalPos.x == myMoves[j].x && Math.Abs(originalX - lastmove.goalPos.x) == 1
-
                         enW = true;
                         pieceToTake = positions[myMoves[j].x, myMoves[j].y - 1];
                         positions[myMoves[j].x, myMoves[j].y - 1] = null;
@@ -943,6 +941,11 @@ public class Grid : MonoBehaviour
                 castleShort = false;
             }
         }
+        // else
+        // {
+        //     castleShort = false;
+        //     castleLong = false;
+        // }
     }
 
     public void clearMoves()
@@ -2192,6 +2195,9 @@ public class Grid : MonoBehaviour
     }
     public void unMakeMove(Piece takenPiece, bool originalPieceMoved, int originalX, int originalY, int currentX, int currentY)
     {
+        Vector2Int kingPos = findKing(playerToplay);
+        Tile kingTile = GameObject.Find("Tile " + kingPos.x + " " + kingPos.y).GetComponent<Tile>();
+        kingTile.resetColor();
         Piece piece = positions[currentX, currentY];
         if (takenPiece != null)
         {
@@ -2227,14 +2233,13 @@ public class Grid : MonoBehaviour
     {
         Piece pieceAtPos = positions[move.goalPos.x, move.goalPos.y];
         SetPosition(move.piece, move.goalPos.x, move.goalPos.y);
-        addFEN();
         if (pieceAtPos != null)
         {
             Destroy(pieceAtPos.gameObject);
         }
-
         move.piece.setPieceToPos(new Vector3(move.goalPos.x, move.goalPos.y, -1));
         move.piece.setHasMoved(true);
+        addFEN();
         playerToplay = "white";
     }
 
@@ -2287,11 +2292,7 @@ public class Grid : MonoBehaviour
         orderedMoves.AddRange(allLegalMoves);
         return orderedMoves;
     }
-    private void makeCaptureIndicators()
-    {
-        for (int i = 0; i < captures.Count; i++)
-        {
-            Instantiate(moveIndicator, new Vector3(moves[i].x, moves[i].y, -1), Quaternion.identity);
-        }
-    }
+
 }
+
+
