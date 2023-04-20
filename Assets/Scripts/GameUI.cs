@@ -108,6 +108,7 @@ public class GameUI : MonoBehaviour
     //Change to the input field
     public void connectPress()
     {
+        client.shutdown();
         client.init(8007, "127.0.0.1");
 
     }

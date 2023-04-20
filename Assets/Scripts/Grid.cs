@@ -1395,7 +1395,7 @@ public class Grid : MonoBehaviour
             case "bPawn":
                 break;
             case "wRook":
-            case "BRook":
+            case "bRook":
                 notation += "R";
                 break;
             case "wQueen":
@@ -1717,25 +1717,11 @@ public class Grid : MonoBehaviour
                     }
                     else if (piece == "bKing")
                     {
-                        for (int i = 0; i < movesPlayed.Count; i++)
-                        {
-                            if (movesPlayed[i].pieceName == "bKing")
-                            {
-                                newPiece.setHasMoved(true);
-                                break;
-                            }
-                        }
+                        newPiece.setHasMoved(hasKingMoved("bKing"));
                     }
                     else if (piece == "wKing")
                     {
-                        for (int i = 0; i < movesPlayed.Count; i++)
-                        {
-                            if (movesPlayed[i].pieceName == "wKing")
-                            {
-                                newPiece.setHasMoved(true);
-                                break;
-                            }
-                        }
+                        newPiece.setHasMoved(hasKingMoved("wKing"));
                     }
                     positions[col, row] = newPiece;
                     col++;
@@ -1743,7 +1729,22 @@ public class Grid : MonoBehaviour
             }
         }
     }
+    private bool hasKingMoved(string king)
+    {
+        for (int i = 0; i < movesPlayed.Count; i++)
+        {
+            if (i < replayMoveIndex)
+            {
+                if (movesPlayed[i].pieceName == king)
+                {
+                    return true;
 
+                }
+            }
+
+        }
+        return false;
+    }
     private string getPieceType(char fenChar)
     {
         switch (fenChar)
@@ -2050,13 +2051,13 @@ public class Grid : MonoBehaviour
             playerToplay = "white";
 
             generateAllLegalMoves(playerToplay);
-            // List<Move> legalMoves = new List<Move>(allLegalMoves);
-            // shuffleList(legalMoves);
+            //List<Move> legalMoves = new List<Move>(allLegalMoves);
+
             List<Move> legalMoves = new List<Move>(orderMoves(playerToplay));
 
             foreach (Move move in legalMoves)
             {
-                string boardBeforeAIMove = convertToFen2();
+                //string boardBeforeAIMove = convertToFen2();
                 bool piece1Moved = positions[move.originalPos.x, move.originalPos.y].getHasMoved();
                 // print($"MAKING MOVE {move.originalPos.x}, {move.originalPos.y}, {move.goalPos.x}, {move.goalPos.y}");
                 Piece pieceToTake1 = makeMove(move.originalPos.x, move.originalPos.y, move.goalPos.x, move.goalPos.y);
@@ -2064,10 +2065,11 @@ public class Grid : MonoBehaviour
 
                 //print($"UNMAKING MOVE {move.originalPos.x}, {move.originalPos.y}, {move.goalPos.x}, {move.goalPos.y}");
                 unMakeMove(pieceToTake1, piece1Moved, move.originalPos.x, move.originalPos.y, move.goalPos.x, move.goalPos.y);
-                if (convertToFen2() != boardBeforeAIMove)
-                {
-                    print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
-                }
+                // if (convertToFen2() != boardBeforeAIMove)
+                // {
+                //     print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
+                // }
+
                 if (eval > maxEval)
                 {
                     maxEval = eval;
@@ -2091,23 +2093,24 @@ public class Grid : MonoBehaviour
 
             generateAllLegalMoves(playerToplay);
 
-            // List<Move> legalMoves = new List<Move>(allLegalMoves);
-            // shuffleList(legalMoves);
+            //List<Move> legalMoves = new List<Move>(allLegalMoves);
+
             List<Move> legalMoves = new List<Move>(orderMoves(playerToplay));
             foreach (Move move in legalMoves)
             {
                 bool piece1Moved = positions[move.originalPos.x, move.originalPos.y].getHasMoved();
-                string boardBeforeAIMove = convertToFen2();
+                // string boardBeforeAIMove = convertToFen2();
                 //print($"MAKING MOVE {move.originalPos.x}, {move.originalPos.y}, {move.goalPos.x}, {move.goalPos.y}");
                 Piece pieceToTake1 = makeMove(move.originalPos.x, move.originalPos.y, move.goalPos.x, move.goalPos.y);
                 int eval = Minimax(depth - 1, true, alpha, beta);
 
                 // print($"UNMAKING MOVE {move.originalPos.x}, {move.originalPos.y}, {move.goalPos.x}, {move.goalPos.y}");
                 unMakeMove(pieceToTake1, piece1Moved, move.originalPos.x, move.originalPos.y, move.goalPos.x, move.goalPos.y);
-                if (convertToFen2() != boardBeforeAIMove)
-                {
-                    print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
-                }
+                // if (convertToFen2() != boardBeforeAIMove)
+                // {
+                //     print($"DEPTH {depth} boards are not equal {boardBeforeAIMove} // {convertToFen2()}");
+                // }
+
                 if (eval < minEval)
                 {
                     minEval = eval;
@@ -2127,6 +2130,7 @@ public class Grid : MonoBehaviour
                 {
                     break;
                 }
+
             }
             return minEval;
         }

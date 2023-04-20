@@ -82,6 +82,7 @@ public class Piece : MonoBehaviour
     }
     void OnMouseDown()
     {
+        print(hasMoved);
 
         player = GetPlayer();
         string playerToPlay = grid.getPlayerToPlay();
