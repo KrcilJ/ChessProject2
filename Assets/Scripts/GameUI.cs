@@ -53,6 +53,16 @@ public class GameUI : MonoBehaviour
         Server.Instance.shutdown();
         grid.destroyAssets();
     }
+    public void globalMainMenuPress()
+    {
+        menuAnimator.SetTrigger("MainMenu");
+
+        grid.destroyMoves(0);
+        grid.clearMovesPlayed();
+        grid.destroyAssets();
+        Client.Instance.shutdown();
+        Server.Instance.shutdown();
+    }
     public void localGamePress()
     {
         menuAnimator.SetTrigger("NoMenu");
@@ -119,8 +129,8 @@ public class GameUI : MonoBehaviour
     public void connectionMenuBack()
     {
 
-        server.shutdown();
-        client.shutdown();
+        Client.Instance.shutdown();
+        Server.Instance.shutdown();
         grid.resetNumPlayers();
         menuAnimator.SetTrigger("HostMenu");
     }
