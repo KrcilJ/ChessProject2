@@ -118,8 +118,10 @@ public class GameUI : MonoBehaviour
     }
     public void connectionMenuBack()
     {
+
         server.shutdown();
         client.shutdown();
+        grid.resetNumPlayers();
         menuAnimator.SetTrigger("HostMenu");
     }
 }

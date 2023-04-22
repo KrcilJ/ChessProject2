@@ -1091,6 +1091,10 @@ public class Grid : MonoBehaviour
             Server.Instance.broadcast(new StartGameMsg());
         }
     }
+    public void resetNumPlayers()
+    {
+        numPlayers = -1;
+    }
     private void onMakeMoveServer(Message msg, NetworkConnection connection)
     {
         //Broadcast the message to the client
@@ -1367,7 +1371,7 @@ public class Grid : MonoBehaviour
         moveNuber = 0;
         computerPlayer = "";
 
-
+        DestroyIndicators();
         GameObject[] tiles = GameObject.FindGameObjectsWithTag("DropArea");
         for (int i = 0; i < tiles.Length; i++)
         {

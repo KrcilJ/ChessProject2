@@ -117,11 +117,15 @@ public class Piece : MonoBehaviour
         offset = rectTransform.position - MouseWorldPosition();
         //Check if the player who wants to play is mated
 
-        if (grid.checkmate(playerToPlay))
+        if (grid.getReplayMoveIndex() == 0)
         {
-            gameOver(playerToPlay, 0);
-            return;
+            if (grid.checkmate(playerToPlay))
+            {
+                gameOver(playerToPlay, 0);
+                return;
+            }
         }
+
 
 
         string enemyPlayer = playerToPlay == "white" ? "black" : "white";
