@@ -160,7 +160,7 @@ public class Grid : MonoBehaviour
         for (int x = 0; x < width; x++)
         {
             generateBoardNotation(x, -0.7f, convertToFile(x));
-            generateBoardNotation(-0.7f, x, $"{x}");
+            generateBoardNotation(-0.7f, x, $"{x + 1}");
             for (int y = 0; y < height; y++)
             {
                 var spawnedTile = Instantiate(tilePrefab, new Vector3(x, y), Quaternion.identity);
