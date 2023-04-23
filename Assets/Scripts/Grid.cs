@@ -159,10 +159,8 @@ public class Grid : MonoBehaviour
         //Generate the grid squares
         for (int x = 0; x < width; x++)
         {
-            var spawnedMove = Instantiate(boardNotation, new Vector3(x, -0.7f, -1), Quaternion.identity);
-            spawnedMove.tag = "BoardGraphic";
-            TextMeshPro mText = spawnedMove.GetComponent<TextMeshPro>();
-            mText.text = convertToFile(x);
+            generateBoardNotation(x, -0.7f, convertToFile(x));
+            generateBoardNotation(-0.7f, x, $"{x}");
             for (int y = 0; y < height; y++)
             {
                 var spawnedTile = Instantiate(tilePrefab, new Vector3(x, y), Quaternion.identity);
@@ -171,15 +169,15 @@ public class Grid : MonoBehaviour
                 spawnedTile.isLight(isLigt);
             }
         }
-        for (int x = 0; x < height; x++)
-        {
-            var spawnedMove = Instantiate(boardNotation, new Vector3(-0.7f, x, -1), Quaternion.identity);
-            spawnedMove.tag = "BoardGraphic";
-            TextMeshPro mText = spawnedMove.GetComponent<TextMeshPro>();
-            mText.text = $"{x + 1}";
 
-        }
         cam.transform.position = new Vector3(width / 2f - 0.5f, height / 2f - 0.5f, -10); //Move the camera to the middle of the screen
+    }
+    private void generateBoardNotation(float x, float y, string text)
+    {
+        var spawnedMove = Instantiate(boardNotation, new Vector3(x, y, -1), Quaternion.identity);
+        spawnedMove.tag = "BoardGraphic";
+        TextMeshPro mText = spawnedMove.GetComponent<TextMeshPro>();
+        mText.text = text;
     }
     public void nullPosition(int x, int y)
     {
@@ -1336,9 +1334,13 @@ public class Grid : MonoBehaviour
     }
     public void setLastMove()
     {
-        lastmove.piece = positions[movesPlayed[replayMoveIndex - 1].goalPos.x, movesPlayed[replayMoveIndex - 1].goalPos.y];
-        lastmove.originalPos = new Vector2Int(movesPlayed[replayMoveIndex - 1].originalPos.x, movesPlayed[replayMoveIndex - 1].originalPos.y);
-        lastmove.goalPos = new Vector2Int(movesPlayed[replayMoveIndex - 1].goalPos.x, movesPlayed[replayMoveIndex - 1].goalPos.y);
+        if (replayMoveIndex != 0)
+        {
+            lastmove.piece = positions[movesPlayed[replayMoveIndex - 1].goalPos.x, movesPlayed[replayMoveIndex - 1].goalPos.y];
+            lastmove.originalPos = new Vector2Int(movesPlayed[replayMoveIndex - 1].originalPos.x, movesPlayed[replayMoveIndex - 1].originalPos.y);
+            lastmove.goalPos = new Vector2Int(movesPlayed[replayMoveIndex - 1].goalPos.x, movesPlayed[replayMoveIndex - 1].goalPos.y);
+        }
+
     }
     public void replayPrevMove()
     {
