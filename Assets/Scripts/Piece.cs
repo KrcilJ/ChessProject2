@@ -1,6 +1,5 @@
 using UnityEngine;
 using TMPro;
-using System.Diagnostics;
 
 public class Piece : MonoBehaviour
 {
@@ -16,6 +15,7 @@ public class Piece : MonoBehaviour
     private string player = "white";
     private string destinationTag = "DropArea";
     private Grid grid;
+    //Setters and getters
     public int GetX()
     {
         return xCord;
@@ -36,7 +36,14 @@ public class Piece : MonoBehaviour
     {
         return player;
     }
-
+    public void setHasMoved(bool moved)
+    {
+        hasMoved = moved;
+    }
+    public bool getHasMoved()
+    {
+        return hasMoved;
+    }
     public void SetPiece()
     {
         //Assign the correct sprite to the pieces
@@ -82,11 +89,8 @@ public class Piece : MonoBehaviour
     }
     void OnMouseDown()
     {
-        print(hasMoved);
-
         player = GetPlayer();
         string playerToPlay = grid.getPlayerToPlay();
-
 
         int pTP;
         //Logic to not allow online players to move the other pieces when it is not their turn
@@ -115,7 +119,7 @@ public class Piece : MonoBehaviour
         grid.clearMoves();
         //Set the offset from the piece to the mouse (this prevents snapping of the piece onto the mouse)
         offset = rectTransform.position - MouseWorldPosition();
-        //Check if the player who wants to play is mated
+        //Check if the player who wants to play is checkmated
 
         if (grid.getReplayMoveIndex() == 0)
         {
@@ -126,20 +130,18 @@ public class Piece : MonoBehaviour
             }
         }
 
-
-
         string enemyPlayer = playerToPlay == "white" ? "black" : "white";
 
         //Disable the collider of the piece we are dragging, otherwise we would always hit the piece with the raycast and not the object bellow it
         rectTransform.GetComponent<Collider2D>().enabled = false;
+        //Clean up after checking checkmate
         grid.clearMoves();
-
+        //Destroy the previous move indicators
         grid.DestroyIndicators();
         if (this != null)
         {
             grid.setEnpassantBlack(false);
             grid.setEnpassantWhite(false);
-            grid.clearMoves();
             //if the game is being replayed and we want to make a move we need to set the last move played (needed for correct move generation)
             if (grid.getReplaingGame())
             {
@@ -160,7 +162,6 @@ public class Piece : MonoBehaviour
 
     void OnMouseUp()
     {
-
         var rayOrigin = Camera.main.transform.position;
         var rayDirection = MouseWorldPosition() - Camera.main.transform.position;
 
@@ -201,7 +202,7 @@ public class Piece : MonoBehaviour
             if (legalMove)
             {
 
-                //if the movec was legal change the position of the piece to the position of the square it is moving to
+                //if the move was legal change the position of the piece to the position of the square it is moving to
                 rectTransform.position = hitInfo.transform.position;
 
                 if (grid.getReplaingGame())
@@ -238,13 +239,12 @@ public class Piece : MonoBehaviour
 
                 }
 
-
                 //Check if the move en passant, if it was destroy the pawn behind the en passant move
                 x = this.GetX();
                 y = this.GetY();
                 if (grid.getenPassantWhite() && grid.getPosition(x, y - 1) != null)
                 {
-                    print("en p w piece");
+                    //destroy the piece taken by en passant and null its position in the board array
                     Destroy(grid.getPosition(x, y - 1).gameObject);
                     grid.nullPosition(x, y - 1);
                     if (!grid.getOnlineGame())
@@ -255,7 +255,7 @@ public class Piece : MonoBehaviour
                 }
                 if (grid.getenPassantBlack() && grid.getPosition(x, y + 1) != null)
                 {
-                    print("en p b piece");
+                    //destroy the piece taken by en passant and null its position in the board array
                     Destroy(grid.getPosition(this.GetX(), y + 1).gameObject);
                     grid.nullPosition(x, y + 1);
                     if (!grid.getOnlineGame())
@@ -263,6 +263,7 @@ public class Piece : MonoBehaviour
                         grid.setEnpassantBlack(false);
                     }
                 }
+                //Add the FEN notation of the position after a move has been played
                 grid.addFEN();
                 //Clean up
                 grid.clearMoves();
@@ -283,6 +284,7 @@ public class Piece : MonoBehaviour
                 setHasMoved(true);
                 //Destroy the piece that was on the square
                 Destroy(hitInfo.transform.gameObject);
+
                 grid.SetPosition(this, (int)rectTransform.position.x, (int)rectTransform.position.y);
                 if (grid.getReplayMoveIndex() != 0)
                 {
@@ -300,19 +302,6 @@ public class Piece : MonoBehaviour
             {
                 rectTransform.position = new Vector3(GetX(), GetY(), -1);
             }
-            // //Handle queen promotion
-            // if (this.name == "wPawn" && GetY() == grid.getHeight() - 1)
-            // {
-
-            //     this.name = "wQueen";
-            //     SetPiece();
-            // }
-            // else if (this.name == "bPawn" && GetY() == 0)
-            // {
-            //     this.name = "bQueen";
-            //     SetPiece();
-            // }
-
         }
         //Otherwise return the piece to its original position
         else
@@ -323,6 +312,7 @@ public class Piece : MonoBehaviour
         rectTransform.GetComponent<Collider2D>().enabled = true;
     }
 
+    //Get the position of the mouse in world coordinates
     Vector3 MouseWorldPosition()
     {
         var mouseScreenPos = Input.mousePosition;
@@ -330,18 +320,8 @@ public class Piece : MonoBehaviour
         return Camera.main.ScreenToWorldPoint(mouseScreenPos);
     }
 
-    public void setHasMoved(bool moved)
-    {
-        hasMoved = moved;
-    }
-    public bool getHasMoved()
-    {
-        return hasMoved;
-    }
     public void setPieceToPos(Vector3 pos)
     {
-
-
         rectTransform.position = pos;
     }
 
@@ -349,7 +329,6 @@ public class Piece : MonoBehaviour
     {
         if (this.name == "wPawn" && (int)rectTransform.position.y == grid.getHeight() - 1)
         {
-
             this.name = "wQueen";
             SetPiece();
         }
@@ -370,7 +349,9 @@ public class Piece : MonoBehaviour
             rookPosX = x + 3;
             newRookPos = (int)rectTransform.position.x - 1;
         }
+        //Find the corresponding rook piece
         Piece rook = grid.getPosition(rookPosX, y).GetComponent<Piece>();
+        //Move the rook
         rook.rectTransform.position = new Vector3(newRookPos, rectTransform.position.y, -1);
         grid.SetPosition(rook, newRookPos, (int)rectTransform.position.y);
         //Generate the castle move if we are castling manually after replaying a game
@@ -386,22 +367,25 @@ public class Piece : MonoBehaviour
         if (player == "white")
         {
             grid.setPlayerToPlay("black");
+            //Make the move from the AI if we are playing against it
             if (grid.getComputerPlayer() == "black")
             {
-                if (grid.checkmate(grid.getPlayerToPlay()))
-                {
-                    gameOver(grid.getPlayerToPlay(), 0);
-                    return;
-                }
-                Stopwatch stopwatch = Stopwatch.StartNew();
-                grid.getBestMove();
-                stopwatch.Stop();
-                print($"Time taken {stopwatch.ElapsedMilliseconds}ms");
+                makeComputerMove();
             }
         }
         else
         {
             grid.setPlayerToPlay("white");
         }
+    }
+    private void makeComputerMove()
+    {
+        //check for the AI being in checkmate
+        if (grid.checkmate(grid.getPlayerToPlay()))
+        {
+            gameOver(grid.getPlayerToPlay(), 0);
+            return;
+        }
+        grid.getBestMove();
     }
 }

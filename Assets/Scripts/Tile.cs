@@ -4,8 +4,10 @@ public class Tile : MonoBehaviour
 {
     [SerializeField] private Color dark, light, red;
     [SerializeField] SpriteRenderer renderer;
+    //Each tile will have its color saved
     private Color originalColor;
-    public void isLight(bool isLight)
+
+    public void setTileColor(bool isLight)
     {
         renderer.color = isLight ? light : dark;
     }
@@ -23,6 +25,5 @@ public class Tile : MonoBehaviour
         {
             renderer.color = originalColor;
         }
-
     }
 }

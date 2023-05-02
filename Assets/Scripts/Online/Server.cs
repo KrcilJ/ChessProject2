@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Server : MonoBehaviour
 {
-    
+
     //Creates a static instance of the server
     public static Server Instance { set; get; }
 
@@ -42,7 +42,6 @@ public class Server : MonoBehaviour
         {
             //Listen to incoming connection if we are able to bind to the port
             driver.Listen();
-            Debug.Log("Listening on port" + endPoint.Port);
         }
         //Set the maximum amount of connections (players) in our case 2
         connections = new NativeList<NetworkConnection>(2, Allocator.Persistent);
@@ -53,7 +52,7 @@ public class Server : MonoBehaviour
     {
         if (isActive)
         {
-          //Clean up when we shutdown the server
+            //Clean up when we shutdown the server
             driver.Dispose();
             connections.Dispose();
             isActive = false;
@@ -71,14 +70,14 @@ public class Server : MonoBehaviour
         {
             return;
         }
-
+        //Send keepAlive message
         keepAlive();
         //As the driver is part of the job sheduler we ensure that has completed
         driver.ScheduleUpdate().Complete();
 
         cleanUpConnections();
         acceptNewConnections();
-        updateMessagePump();
+        processEvents();
     }
 
     //Remove all connections
@@ -104,7 +103,7 @@ public class Server : MonoBehaviour
         }
     }
 
-    private void updateMessagePump()
+    private void processEvents()
     {
         DataStreamReader inStream;
         for (int i = 0; i < connections.Length; i++)
@@ -112,7 +111,7 @@ public class Server : MonoBehaviour
             NetworkEvent.Type message;
             while ((message = driver.PopEventForConnection(connections[i], out inStream)) != NetworkEvent.Type.Empty)
             {
-                //Check if the message has data
+                //Check if the message has custom data
                 if (message == NetworkEvent.Type.Data)
                 {
                     //Handle the message
@@ -120,7 +119,6 @@ public class Server : MonoBehaviour
                 }
                 else if (message == NetworkEvent.Type.Disconnect)
                 {
-                    Debug.Log("Client disconnected");
                     connections[i] = default(NetworkConnection);
                     connectionDropped?.Invoke();
                     //If somebody disconnects we shutdown the server as it is a 2 player game
