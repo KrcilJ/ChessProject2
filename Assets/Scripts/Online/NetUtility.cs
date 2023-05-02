@@ -53,22 +53,16 @@ public static class NetUtility
         }
 
     }
-    //Events based on where the message was received
+    //Events based on where the message was received C for client events S for server events
     public static Action<Message> C_KEEP_ALIVE;
-
     public static Action<Message> C_WELCOME;
-
     public static Action<Message> C_START_GAME;
-
     public static Action<Message> C_MAKE_MOVE;
     public static Action<Message, NetworkConnection> S_MAKE_MOVE;
-    
     public static Action<Message> C_GAME_OVER;
 
     public static Action<Message, NetworkConnection> S_KEEP_ALIVE;
-
     public static Action<Message, NetworkConnection> S_WELCOME;
-    
     public static Action<Message, NetworkConnection> S_START_GAME;
     public static Action<Message, NetworkConnection> S_GAME_OVER;
 }

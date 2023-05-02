@@ -16,6 +16,7 @@ public class GameUI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //get object references
         controller = GameObject.FindGameObjectWithTag("GameController");
         grid = controller.GetComponent<Grid>();
     }
@@ -23,39 +24,34 @@ public class GameUI : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-
     }
-
     // Button presses
     public void replayGamePress()
     {
-        //menuAnimator.SetTrigger("NoMenu");
         menuAnimator.SetTrigger("replayGame");
-        // nextButton.SetActive(true);
-        // prevButton.SetActive(true);
-        // scrollArea.SetActive(true);
         grid.replayGame();
     }
     public void replayGameMainMenuPress()
     {
         menuAnimator.SetTrigger("MainMenu");
-        // nextButton.SetActive(true);
-        // prevButton.SetActive(true);
-        // scrollArea.SetActive(true);
-        grid.destroyAssets();
+        //Destroy all assets and clear the movesPlayed
+        cleanUp();
     }
     public void gameOverMainMenuPress()
     {
         menuAnimator.SetTrigger("MainMenu");
-        Client.Instance.shutdown();
-        Server.Instance.shutdown();
+        shutDownClientAndServer();
         grid.destroyAssets();
+    }
+    public void globalMainMenuPress()
+    {
+        menuAnimator.SetTrigger("MainMenu");
+        //Clean up all resources
+        cleanUp();
     }
     public void localGamePress()
     {
         menuAnimator.SetTrigger("NoMenu");
-        // server.init(8007);
-        // client.init(8007,"127.0.0.1" );
         grid.startGame();
     }
     public void onlineGamePress()
@@ -65,7 +61,30 @@ public class GameUI : MonoBehaviour
     }
     public void aiGamePress()
     {
-        menuAnimator.SetTrigger("NoMenu");
+        menuAnimator.SetTrigger("aiMenu");
+    }
+    public void trivialGamePress()
+    {
+        grid.setDepth(1);
+        startAiGame();
+    }
+    public void mediumGamePress()
+    {
+        grid.setDepth(2);
+        startAiGame();
+    }
+    public void hardGamePress()
+    {
+        grid.setDepth(4);
+        startAiGame();
+    }
+    public void aiMenuBackPress()
+    {
+        menuAnimator.SetTrigger("MainMenu");
+    }
+    private void startAiGame()
+    {
+        menuAnimator.SetTrigger("noMenu");
         grid.setComputerPlayer("black");
         grid.startGame();
     }
@@ -74,14 +93,12 @@ public class GameUI : MonoBehaviour
         server.init(8007);
         client.init(8007, "127.0.0.1");
         menuAnimator.SetTrigger("ConnectionMenu");
-        //menuAnimator.SetTrigger("NoMenu");
     }
-    //TODO
-    //Change to the input field
+
     public void connectPress()
     {
+        client.shutdown();
         client.init(8007, "127.0.0.1");
-
     }
     public void onlineMenuBack()
     {
@@ -89,8 +106,21 @@ public class GameUI : MonoBehaviour
     }
     public void connectionMenuBack()
     {
-        server.shutdown();
-        client.shutdown();
+        shutDownClientAndServer();
+        grid.resetNumPlayers();
         menuAnimator.SetTrigger("HostMenu");
+    }
+    private void shutDownClientAndServer()
+    {
+        Client.Instance.shutdown();
+        Server.Instance.shutdown();
+    }
+    private void cleanUp()
+    {
+        shutDownClientAndServer();
+        //Destroy all the ReplayMove gameobjects
+        grid.destroyMoves(0);
+        grid.clearMovesPlayed();
+        grid.destroyAssets();
     }
 }

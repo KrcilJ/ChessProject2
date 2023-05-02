@@ -3,19 +3,21 @@ using Unity.Networking.Transport;
 
 public class WelcomeMsg : Message
 {
-    public int player {set; get;}
-    public WelcomeMsg(){ //Creating a message
+    public int player { set; get; }
+    public WelcomeMsg()
+    { //Creating a message
         code = OperationCode.WELCOME;
     }
-     public WelcomeMsg(DataStreamReader reader){ //Receiving a message
+    public WelcomeMsg(DataStreamReader reader)
+    { //Receiving a message
         code = OperationCode.WELCOME;
         deserialize(reader);
     }
-
+    //Message contains the player
     public override void serialize(ref DataStreamWriter writer)
     {
-       writer.WriteByte((byte)code);
-       writer.WriteInt(player);
+        writer.WriteByte((byte)code);
+        writer.WriteInt(player);
     }
     public override void deserialize(DataStreamReader reader)
     {
@@ -28,6 +30,6 @@ public class WelcomeMsg : Message
     }
     public override void receivedOnServer(NetworkConnection connection)
     {
-       NetUtility.S_WELCOME?.Invoke(this, connection);
+        NetUtility.S_WELCOME?.Invoke(this, connection);
     }
 }

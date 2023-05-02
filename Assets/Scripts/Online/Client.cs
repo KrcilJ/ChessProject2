@@ -1,5 +1,4 @@
 using System;
-using Unity.Collections;
 using Unity.Networking.Transport;
 using UnityEngine;
 
@@ -25,14 +24,13 @@ public class Client : MonoBehaviour
         //Connect to a specific ip and port
         NetworkEndPoint endPoint = NetworkEndPoint.Parse(ip, port);
         connection = driver.Connect(endPoint);
-        Debug.Log("Attempting to connect" + endPoint.Address);
         isActive = true;
-
         registerToEvent();
     }
 
     public void shutdown()
     {
+        //Clean up resources on shudown
         if (isActive)
         {
             unregisterToEvent();
@@ -42,14 +40,13 @@ public class Client : MonoBehaviour
         }
     }
 
+    //Automatically called by unity if the resource is destroyed e.g. when a client crashes
     private void OnDestroy()
     {
         shutdown();
     }
 
-    /// <summary>
     /// Update is called every frame, if the MonoBehaviour is enabled.
-    /// </summary>
     private void Update()
     {
         if (!isActive)
@@ -60,7 +57,7 @@ public class Client : MonoBehaviour
         driver.ScheduleUpdate().Complete();
         checkAlive();
 
-        updateMessagePump();
+        processEvents();
     }
 
     private void checkAlive()
@@ -68,14 +65,13 @@ public class Client : MonoBehaviour
         //If a connection was not created but the client is active
         if (!connection.IsCreated && isActive)
         {
-            Debug.Log("Lost connection to the server");
             //Invoke the connectionDropped action
             connectionDropped?.Invoke();
             shutdown();
         }
     }
 
-    private void updateMessagePump()
+    private void processEvents()
     {
         DataStreamReader inStream;
 
@@ -83,25 +79,26 @@ public class Client : MonoBehaviour
         //Pool a single connection
         while ((messageType = connection.PopEvent(driver, out inStream)) != NetworkEvent.Type.Empty)
         {
+            //If we connect send a welcome meesage to the server
             if (messageType == NetworkEvent.Type.Connect)
             {
                 sendToServer(new WelcomeMsg());
-                Debug.Log("We are connected");
             }
             else if (messageType == NetworkEvent.Type.Data)
             {
+                //Handle custom messages
                 NetUtility.onData(inStream, default(NetworkConnection));
             }
+            //If a client disconnects clean up and shutdown
             else if (messageType == NetworkEvent.Type.Disconnect)
             {
-                Debug.Log("Client got disconnected from the server");
                 connection = default(NetworkConnection);
                 connectionDropped?.Invoke();
                 shutdown();
             }
         }
     }
-
+    //serialize a meessage and send it to the server
     public void sendToServer(Message msg)
     {
         DataStreamWriter writer;
